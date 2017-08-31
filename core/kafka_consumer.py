@@ -34,7 +34,7 @@ offset_reset = "smallest"  # smallest OR largest
 consumer_group_id = "md2k-test"
 
 
-def spark_kafka_file_consumer(kafka_topic: str) -> KafkaDStream:
+def spark_kafka_consumer(kafka_topic: str) -> KafkaDStream:
     """
 
     :param kafka_topic:
@@ -43,11 +43,3 @@ def spark_kafka_file_consumer(kafka_topic: str) -> KafkaDStream:
     return KafkaUtils.createDirectStream(ssc, kafka_topic,
                                          {"metadata.broker.list": broker, "auto.offset.reset": offset_reset,
                                           "group.id": consumer_group_id})
-
-
-def spark_kafka_json_consumer(kafka_topic: str) -> KafkaDStream:
-    """
-
-    :param kafka_topic:
-    """
-    pass
