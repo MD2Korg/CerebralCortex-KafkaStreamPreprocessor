@@ -23,26 +23,60 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import json
-
+from typing import List
 from core import CC
-from util.util import row_to_datapoint, chunks, get_gzip_file_contents
 from pyspark.streaming.kafka import KafkaDStream
 
+from cerebralcortex.kernel.datatypes.datastream import DataStream, DataPoint
 
-def kafka_file_to_json_producer(message: KafkaDStream):
+
+def kafka_to_db(message: KafkaDStream):
     """
-    Read convert gzip file data into json object and publish it on Kafka
+
     :param message:
     """
     records = message.collect()
     for record in records:
         msg = json.loads(record[1])
-        if "metadata" in msg and "filename" in msg:
+        if "metadata" in msg and "data" in msg:
             metadata_header = msg["metadata"]
-            gzip_file_content = get_gzip_file_contents(msg["filename"])
-            lines = list(map(lambda x: row_to_datapoint(x), gzip_file_content.splitlines()))
-            for d in chunks(lines, 1000):
-                json_object = {'metadata': metadata_header, 'data': d}
-                CC.kafka_produce_message("processed_stream1", json_object)
+            data = msg["data"]
+            datastream = json_to_datastream(metadata_header, data)
+            CC.save_datastream(datastream)
         else:
-            raise ValueError("Kafka message does not contain metadata and/or file-name.")
+            raise ValueError("Kafka message does not contain metadata and/or data.")
+
+
+def json_to_datastream(metadata: dict, json_data: dict) -> DataStream:
+    """
+    :param metadata:
+    :param json_data:
+    :return:
+    """
+    data = json_to_datapoint(json_data)
+
+    #Metadata fields
+    streamID = metadata["identifier"]
+    ownerID = metadata["owner"]
+    name = metadata["name"]
+    data_descriptor = metadata["data_descriptor"]
+    execution_context = metadata["execution_context"]
+    annotations = metadata["annotations"]
+    stream_type = "stream" #TODO: stream-type is missing in metadata
+    start_time = json_data[0]["starttime"]
+    end_time = json_data[len(json_data)-1]["starttime"]
+
+    return DataStream(streamID, ownerID, name, data_descriptor, execution_context, annotations,
+                      stream_type, start_time, end_time, data)
+
+def json_to_datapoint(data: List) -> List:
+    """
+
+    :param data:
+    :return:
+    """
+    datapointsList = []
+    for row in data:
+        dp = DataPoint(row["starttime"], "", row["value"])
+        datapointsList.append(dp)
+    return dp

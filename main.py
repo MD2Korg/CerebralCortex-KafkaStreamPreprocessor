@@ -22,19 +22,26 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from core.kafka_consumer import spark_kafka_file_consumer, ssc
-from core.kafka_producer import kafka_producer
+from core.kafka_consumer import spark_kafka_consumer, ssc
+from core.kafka_producer import kafka_file_to_json_producer
+from core.kafka_to_cc_storage_engine import kafka_to_db
 
 
+def process_data(kafka_filequeue_topic: str, kafka_processed_topic: str):
+    """
+
+    :param kafka_filequeue_topic:
+    """
+    kafka_files_stream = spark_kafka_consumer(kafka_filequeue_topic)
+    kafka_files_stream.foreachRDD(kafka_file_to_json_producer)
+
+    kafka_processed_stream = spark_kafka_consumer(kafka_processed_topic)
+    kafka_processed_stream.foreachRDD(kafka_to_db)
 
 
-def process_data(kafka_topic):
-
-    kvs = spark_kafka_file_consumer(kafka_topic)
-
-    kvs.foreachRDD(kafka_producer)
 
     ssc.start()
     ssc.awaitTermination()
 
-process_data(["filequeue"])
+
+process_data(["filequeue1"], ["processed_stream1"])
