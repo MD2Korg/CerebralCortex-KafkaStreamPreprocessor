@@ -56,14 +56,23 @@ def json_to_datastream(metadata: dict, json_data: dict) -> DataStream:
     :return:
     """
     data = json_to_datapoint(json_data)
+    if not "execution_context" in metadata:
+        raise ValueError("Execution context cannot be empty.")
+    elif "identifier" in metadata:
+        raise ValueError("Stream ID cannot be empty.")
+    elif "owner" in metadata:
+        raise ValueError("Stream owner ID cannot be empty.")
+    elif "name" in metadata:
+        raise ValueError("Stream name cannot be empty.")
+
 
     #Metadata fields
     streamID = metadata["identifier"]
     ownerID = metadata["owner"]
     name = metadata["name"]
-    data_descriptor = {"data_descriptor":metadata["data_descriptor"]}
+    data_descriptor = {"data_descriptor":metadata["data_descriptor"] if "data_descriptor" in metadata else ""}
     execution_context = {"execution_context":metadata["execution_context"]}
-    annotations = {"annotations":metadata["annotations"]}
+    annotations = {"annotations":metadata["annotations"] if "annotations" in metadata else ""}
     stream_type = "stream" #TODO: stream-type is missing in metadata
     start_time = datetime.strptime(json_data[0]["starttime"][:-13], '%Y-%m-%d %H:%M:%S')
     end_time = datetime.strptime(json_data[len(json_data)-1]["starttime"][:-13], '%Y-%m-%d %H:%M:%S')
