@@ -58,11 +58,11 @@ def json_to_datastream(metadata: dict, json_data: dict) -> DataStream:
     data = json_to_datapoint(json_data)
     if not "execution_context" in metadata:
         raise ValueError("Execution context cannot be empty.")
-    elif "identifier" in metadata:
+    elif not "identifier" in metadata:
         raise ValueError("Stream ID cannot be empty.")
-    elif "owner" in metadata:
+    elif not "owner" in metadata:
         raise ValueError("Stream owner ID cannot be empty.")
-    elif "name" in metadata:
+    elif not "name" in metadata:
         raise ValueError("Stream name cannot be empty.")
 
 
