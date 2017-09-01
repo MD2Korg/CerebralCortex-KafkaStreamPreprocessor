@@ -43,6 +43,6 @@ def kafka_file_to_json_producer(message: KafkaDStream):
             lines = list(map(lambda x: row_to_datapoint(x), gzip_file_content.splitlines()))
             for d in chunks(lines, 1000):
                 json_object = {'metadata': metadata_header, 'data': d}
-                CC.kafka_produce_message("processed_stream1", json_object)
+                CC.kafka_produce_message("processed_stream", json_object)
         else:
             raise ValueError("Kafka message does not contain metadata and/or file-name.")
