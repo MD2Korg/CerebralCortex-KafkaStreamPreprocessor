@@ -24,7 +24,9 @@
 
 import json
 from typing import List
+from datetime import datetime
 from core import CC
+from dateutil.parser import parse
 from pyspark.streaming.kafka import KafkaDStream
 
 from cerebralcortex.kernel.datatypes.datastream import DataStream, DataPoint
@@ -59,12 +61,12 @@ def json_to_datastream(metadata: dict, json_data: dict) -> DataStream:
     streamID = metadata["identifier"]
     ownerID = metadata["owner"]
     name = metadata["name"]
-    data_descriptor = metadata["data_descriptor"]
-    execution_context = metadata["execution_context"]
-    annotations = metadata["annotations"]
+    data_descriptor = {"data_descriptor":metadata["data_descriptor"]}
+    execution_context = {"execution_context":metadata["execution_context"]}
+    annotations = {"annotations":metadata["annotations"]}
     stream_type = "stream" #TODO: stream-type is missing in metadata
-    start_time = json_data[0]["starttime"]
-    end_time = json_data[len(json_data)-1]["starttime"]
+    start_time = datetime.strptime(json_data[0]["starttime"][:-13], '%Y-%m-%d %H:%M:%S')
+    end_time = datetime.strptime(json_data[len(json_data)-1]["starttime"][:-13], '%Y-%m-%d %H:%M:%S')
 
     return DataStream(streamID, ownerID, name, data_descriptor, execution_context, annotations,
                       stream_type, start_time, end_time, data)
@@ -77,6 +79,6 @@ def json_to_datapoint(data: List) -> List:
     """
     datapointsList = []
     for row in data:
-        dp = DataPoint(row["starttime"], "", row["value"])
+        dp = DataPoint(parse(row["starttime"]), "", row["value"])
         datapointsList.append(dp)
-    return dp
+    return datapointsList
