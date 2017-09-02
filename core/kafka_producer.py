@@ -23,10 +23,11 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import json
+import os
 
 from core import CC
-from util.util import row_to_datapoint, chunks, get_gzip_file_contents
 from pyspark.streaming.kafka import KafkaDStream
+from util.util import row_to_datapoint, chunks, get_gzip_file_contents, rename_file
 
 
 def kafka_file_to_json_producer(message: KafkaDStream):
@@ -39,10 +40,14 @@ def kafka_file_to_json_producer(message: KafkaDStream):
         msg = json.loads(record[1])
         if "metadata" in msg and "filename" in msg:
             metadata_header = msg["metadata"]
-            gzip_file_content = get_gzip_file_contents(msg["filename"])
-            lines = list(map(lambda x: row_to_datapoint(x), gzip_file_content.splitlines()))
-            for d in chunks(lines, 1000):
-                json_object = {'metadata': metadata_header, 'data': d}
-                CC.kafka_produce_message("processed_stream", json_object)
+            if os.path.isfile(msg["filename"]):
+                gzip_file_content = get_gzip_file_contents(msg["filename"])
+                lines = list(map(lambda x: row_to_datapoint(x), gzip_file_content.splitlines()))
+
+                for d in chunks(lines, 1000):
+                    json_object = {'metadata': metadata_header, 'data': d}
+                    CC.kafka_produce_message("processed_stream", json_object)
+                rename_file(msg["filename"])
+            print("PROCESSED - " + msg["filename"])
         else:
             raise ValueError("Kafka message does not contain metadata and/or file-name.")

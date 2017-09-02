@@ -24,6 +24,7 @@
 
 import datetime
 import gzip
+import os
 
 
 def get_gzip_file_contents(file_name: str) -> str:
@@ -65,3 +66,15 @@ def row_to_datapoint(row: str) -> dict:
     ts = datetime.datetime.fromtimestamp(ts, timezone)
 
     return {'starttime': str(ts), 'value': values}
+
+
+def rename_file(old: str):
+    """
+
+    :param old:
+    """
+    old_file_name = old.rsplit('/', 1)[1]
+    new_file_name = "PROCESSED_" + old_file_name
+    new_file_name = str.replace(old, old_file_name, new_file_name)
+    if os.path.isfile(old):
+        os.rename(old, new_file_name)
