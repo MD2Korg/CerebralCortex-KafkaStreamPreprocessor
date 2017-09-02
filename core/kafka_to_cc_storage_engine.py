@@ -24,12 +24,11 @@
 
 import json
 from typing import List
-from datetime import datetime
 from core import CC
-from dateutil.parser import parse
-from pyspark.streaming.kafka import KafkaDStream
-
 from cerebralcortex.kernel.datatypes.datastream import DataStream, DataPoint
+from dateutil.parser import parse
+
+from pyspark.streaming.kafka import KafkaDStream
 
 
 def kafka_to_db(message: KafkaDStream):
@@ -45,6 +44,7 @@ def kafka_to_db(message: KafkaDStream):
             data = msg["data"]
             datastream = json_to_datastream(metadata_header, data)
             CC.save_datastream(datastream)
+
         else:
             raise ValueError("Kafka message does not contain metadata and/or data.")
 
@@ -65,20 +65,20 @@ def json_to_datastream(metadata: dict, json_data: dict) -> DataStream:
     elif not "name" in metadata:
         raise ValueError("Stream name cannot be empty.")
 
-
-    #Metadata fields
+    # Metadata fields
     streamID = metadata["identifier"]
     ownerID = metadata["owner"]
     name = metadata["name"]
-    data_descriptor = {"data_descriptor":metadata["data_descriptor"] if "data_descriptor" in metadata else ""}
-    execution_context = {"execution_context":metadata["execution_context"]}
-    annotations = {"annotations":metadata["annotations"] if "annotations" in metadata else ""}
-    stream_type = "stream" #TODO: stream-type is missing in metadata
-    start_time = datetime.strptime(json_data[0]["starttime"][:-13], '%Y-%m-%d %H:%M:%S')
-    end_time = datetime.strptime(json_data[len(json_data)-1]["starttime"][:-13], '%Y-%m-%d %H:%M:%S')
+    data_descriptor = {"data_descriptor": metadata["data_descriptor"] if "data_descriptor" in metadata else ""}
+    execution_context = {"execution_context": metadata["execution_context"]}
+    annotations = {"annotations": metadata["annotations"] if "annotations" in metadata else ""}
+    stream_type = "stream"  # TODO: stream-type is missing in metadata
+    start_time = parse(parse(json_data[0]["starttime"]).strftime("%Y-%m-%d %H:%M:%S"))
+    end_time = parse(parse(json_data[len(json_data) - 1]["starttime"]).strftime("%Y-%m-%d %H:%M:%S"))
 
     return DataStream(streamID, ownerID, name, data_descriptor, execution_context, annotations,
                       stream_type, start_time, end_time, data)
+
 
 def json_to_datapoint(data: List) -> List:
     """

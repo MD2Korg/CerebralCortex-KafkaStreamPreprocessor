@@ -22,26 +22,25 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from core.kafka_consumer import spark_kafka_consumer, ssc
+from core.kafka_consumer import spark_kafka_consumer
 from core.kafka_producer import kafka_file_to_json_producer
 from core.kafka_to_cc_storage_engine import kafka_to_db
+from pyspark.streaming import StreamingContext
+from core import CC
+
+# Kafka Consumer Configs
+batch_duration = 2  # seconds
+ssc = StreamingContext(CC.sc, 2)
+broker = "localhost:9092"  # multiple brokers can be passed as comma separated values
+offset_reset = "smallest"  # smallest OR largest
+consumer_group_id = "md2k-test"
 
 
-def process_data(kafka_filequeue_topic: str, kafka_processed_topic: str):
-    """
+kafka_files_stream = spark_kafka_consumer(["filequeue"], ssc, broker, offset_reset, consumer_group_id)
+kafka_files_stream.foreachRDD(kafka_file_to_json_producer)
 
-    :param kafka_filequeue_topic:
-    """
-    kafka_files_stream = spark_kafka_consumer(kafka_filequeue_topic)
-    kafka_files_stream.foreachRDD(kafka_file_to_json_producer)
+kafka_processed_stream = spark_kafka_consumer(["processed_stream"], ssc, broker, offset_reset, consumer_group_id)
+kafka_processed_stream.foreachRDD(kafka_to_db)
 
-    kafka_processed_stream = spark_kafka_consumer(kafka_processed_topic)
-    kafka_processed_stream.foreachRDD(kafka_to_db)
-
-
-
-    ssc.start()
-    ssc.awaitTermination()
-
-
-process_data(["filequeue1"], ["processed_stream1"])
+ssc.start()
+ssc.awaitTermination()
