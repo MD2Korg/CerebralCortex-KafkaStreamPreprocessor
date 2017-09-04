@@ -28,26 +28,49 @@ import os
 from core import CC
 from pyspark.streaming.kafka import KafkaDStream
 from util.util import row_to_datapoint, chunks, get_gzip_file_contents, rename_file
+from pprint import pprint
 
+
+def verify_fields(msg):
+    if "metadata" in msg and "filename" in msg:
+        if os.path.isfile(msg["filename"]):
+            return True
+    return False
+
+def file_processor(msg):
+    metadata_header = msg["metadata"]
+    gzip_file_content = get_gzip_file_contents(msg["filename"])
+    lines = list(map(lambda x: row_to_datapoint(x), gzip_file_content.splitlines()))
+    rename_file(msg["filename"])
+    return [msg["filename"], metadata_header, lines]
+
+def message_generator(data):
+    filename = data[0]
+    metadata_header = data[1]
+    lines = data[2]
+    result = []
+    for d in chunks(lines,10000):
+        json_object = {'filename': filename, 'metadata': metadata_header, 'data': d}
+        result.append(json_object)
+    return result
+
+def CC_send(data):
+    for msg in data:
+        print("Sending", msg['filename'],len(msg['data']))
+        CC.kafka_produce_message("processed_stream", msg)
 
 def kafka_file_to_json_producer(message: KafkaDStream):
     """
     Read convert gzip file data into json object and publish it on Kafka
     :param message:
     """
-    records = message.collect()
-    for record in records:
-        msg = json.loads(record[1])
-        if "metadata" in msg and "filename" in msg:
-            metadata_header = msg["metadata"]
-            if os.path.isfile(msg["filename"]):
-                gzip_file_content = get_gzip_file_contents(msg["filename"])
-                lines = list(map(lambda x: row_to_datapoint(x), gzip_file_content.splitlines()))
 
-                for d in chunks(lines, 1000):
-                    json_object = {'metadata': metadata_header, 'data': d}
-                    CC.kafka_produce_message("processed_stream", json_object)
-                rename_file(msg["filename"])
-            print("PROCESSED - " + msg["filename"])
-        else:
-            raise ValueError("Kafka message does not contain metadata and/or file-name.")
+    records = message.map(lambda r: json.loads(r[1]))
+    valid_records = records.filter(verify_fields).repartition(8)
+    results = valid_records.map(file_processor).map(message_generator).map(CC_send)
+    
+    print("Iteration count:",results.count())
+
+
+
+
