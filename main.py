@@ -29,8 +29,8 @@ from pyspark.streaming import StreamingContext
 from core import CC
 
 # Kafka Consumer Configs
-batch_duration = 2  # seconds
-ssc = StreamingContext(CC.sc, 2)
+batch_duration = 5  # seconds
+ssc = StreamingContext(CC.sc, batch_duration)
 broker = "localhost:9092"  # multiple brokers can be passed as comma separated values
 offset_reset = "smallest"  # smallest OR largest
 consumer_group_id = "md2k-test"
@@ -39,8 +39,9 @@ consumer_group_id = "md2k-test"
 kafka_files_stream = spark_kafka_consumer(["filequeue"], ssc, broker, offset_reset, consumer_group_id)
 kafka_files_stream.foreachRDD(kafka_file_to_json_producer)
 
-kafka_processed_stream = spark_kafka_consumer(["processed_stream"], ssc, broker, offset_reset, consumer_group_id)
-kafka_processed_stream.foreachRDD(kafka_to_db)
+#kafka_processed_stream = spark_kafka_consumer(["processed_stream"], ssc, broker, offset_reset, consumer_group_id)
+#kafka_processed_stream.foreachRDD(kafka_to_db)
+
 
 ssc.start()
 ssc.awaitTermination()
