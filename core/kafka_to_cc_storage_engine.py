@@ -31,47 +31,50 @@ from dateutil.parser import parse
 from pyspark.streaming.kafka import KafkaDStream
 
 
+def verify_fields(msg):
+    if "metadata" in msg and "data" in msg:
+        return True
+    return False
+
 def kafka_to_db(message: KafkaDStream):
     """
 
     :param message:
     """
-    records = message.collect()
-    for record in records:
-        msg = json.loads(record[1])
-        if "metadata" in msg and "data" in msg:
-            metadata_header = msg["metadata"]
-            data = msg["data"]
-            datastream = json_to_datastream(metadata_header, data)
-            CC.save_datastream(datastream)
 
-        else:
-            raise ValueError("Kafka message does not contain metadata and/or data.")
+    records = message.map(lambda r: json.loads(r[1]))
+    valid_records = records.filter(verify_fields).repartition(8)
+
+    results = valid_records.map(json_to_datastream)
+    CC.save_datastream(results)
 
 
-def json_to_datastream(metadata: dict, json_data: dict) -> DataStream:
+def json_to_datastream(msg) -> DataStream:
     """
-    :param metadata:
+    :param metadata_header:
     :param json_data:
     :return:
     """
+    metadata_header = msg["metadata"]
+    json_data = msg["data"]
+
     data = json_to_datapoint(json_data)
-    if not "execution_context" in metadata:
+    if not "execution_context" in metadata_header:
         raise ValueError("Execution context cannot be empty.")
-    elif not "identifier" in metadata:
+    elif not "identifier" in metadata_header:
         raise ValueError("Stream ID cannot be empty.")
-    elif not "owner" in metadata:
+    elif not "owner" in metadata_header:
         raise ValueError("Stream owner ID cannot be empty.")
-    elif not "name" in metadata:
+    elif not "name" in metadata_header:
         raise ValueError("Stream name cannot be empty.")
 
     # Metadata fields
-    streamID = metadata["identifier"]
-    ownerID = metadata["owner"]
-    name = metadata["name"]
-    data_descriptor = {"data_descriptor": metadata["data_descriptor"] if "data_descriptor" in metadata else ""}
-    execution_context = {"execution_context": metadata["execution_context"]}
-    annotations = {"annotations": metadata["annotations"] if "annotations" in metadata else ""}
+    streamID = metadata_header["identifier"]
+    ownerID = metadata_header["owner"]
+    name = metadata_header["name"]
+    data_descriptor = {"data_descriptor": metadata_header["data_descriptor"] if "data_descriptor" in metadata_header else ""}
+    execution_context = {"execution_context": metadata_header["execution_context"]}
+    annotations = {"annotations": metadata_header["annotations"] if "annotations" in metadata_header else ""}
     stream_type = "stream"  # TODO: stream-type is missing in metadata
     start_time = parse(parse(json_data[0]["starttime"]).strftime("%Y-%m-%d %H:%M:%S"))
     end_time = parse(parse(json_data[len(json_data) - 1]["starttime"]).strftime("%Y-%m-%d %H:%M:%S"))
