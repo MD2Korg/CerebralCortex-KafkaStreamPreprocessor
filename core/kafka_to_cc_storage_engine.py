@@ -69,8 +69,8 @@ def get_data(msg):
         else:
             dp = str("2d54c9dc-c716-4e3a-9945-417327a05cb9"), day, start_time, sample
 
-
         temp.append(dp)
+    print("Batch size -> "+str(len(temp)))
     return temp
 
 
