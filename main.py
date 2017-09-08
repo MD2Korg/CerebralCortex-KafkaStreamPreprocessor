@@ -36,11 +36,11 @@ offset_reset = "smallest"  # smallest OR largest
 consumer_group_id = "md2k-test"
 
 
-kafka_files_stream = spark_kafka_consumer(["filequeue"], ssc, broker, offset_reset, consumer_group_id)
-kafka_files_stream.foreachRDD(kafka_file_to_json_producer)
+#kafka_files_stream = spark_kafka_consumer(["filequeue"], ssc, broker, offset_reset, consumer_group_id)
+#kafka_files_stream.foreachRDD(kafka_file_to_json_producer)
 
-#kafka_processed_stream = spark_kafka_consumer(["processed_stream"], ssc, broker, offset_reset, consumer_group_id)
-#kafka_processed_stream.foreachRDD(kafka_to_db)
+kafka_processed_stream = spark_kafka_consumer(["processed_stream2"], ssc, broker, offset_reset, consumer_group_id)
+kafka_processed_stream.foreachRDD(kafka_to_db)
 
 
 ssc.start()

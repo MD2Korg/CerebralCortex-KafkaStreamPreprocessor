@@ -24,9 +24,9 @@
 
 import json
 from typing import List
-from core import CC
 from cerebralcortex.kernel.datatypes.datastream import DataStream, DataPoint
 from dateutil.parser import parse
+from core.cassandra_spark import sc, sqlContext, store_to_cassandra
 
 from pyspark.streaming.kafka import KafkaDStream
 
@@ -43,10 +43,35 @@ def kafka_to_db(message: KafkaDStream):
     """
 
     records = message.map(lambda r: json.loads(r[1]))
-    valid_records = records.filter(verify_fields).repartition(8)
+    valid_records = records.filter(verify_fields)
 
-    results = valid_records.map(json_to_datastream)
-    CC.save_datastream(results)
+    data_points_rdd = valid_records.map(get_data)
+    data_points_rdd.foreach(RDD_to_DF)
+    print("Ready...")
+
+def RDD_to_DF(dps):
+    dataframe_data = sqlContext.createDataFrame(dps,schema=["identifier", "day", "start_time","sample"]).coalesce(400)
+    store_to_cassandra(dataframe_data)
+
+def get_data(msg):
+    datapoints = msg["data"]
+    temp = []
+
+    for i in datapoints:
+        day = parse(parse(i["starttime"]).strftime("%Y%m%d"))
+        if isinstance(i["value"], str):
+            sample = i["value"]
+        else:
+            sample = json.dumps(i["value"])
+        start_time = parse(i["starttime"])
+        if 1==2: #Test-code, this if will not be executed
+            dp = str("2d54c9dc-c716-4e3a-9945-417327a05cb9"), day, start_time, i.end_time, sample
+        else:
+            dp = str("2d54c9dc-c716-4e3a-9945-417327a05cb9"), day, start_time, sample
+
+
+        temp.append(dp)
+    return temp
 
 
 def json_to_datastream(msg) -> DataStream:
