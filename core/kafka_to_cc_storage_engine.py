@@ -26,8 +26,7 @@ import json
 from typing import List
 from cerebralcortex.kernel.datatypes.datastream import DataStream, DataPoint
 from dateutil.parser import parse
-from core.cassandra_spark import sc, sqlContext, store_to_cassandra
-
+from core import CC
 from pyspark.streaming.kafka import KafkaDStream
 
 
@@ -49,8 +48,15 @@ def kafka_to_db(message: KafkaDStream):
     data_points_rdd.foreach(RDD_to_DF)
     print("Ready...")
 
+
+def store_to_cassandra(dataframe_data):
+    dataframe_data.write.format("org.apache.spark.sql.cassandra") \
+        .mode('append') \
+        .options(table="data", keyspace="cerebralcortex").save()
+
+
 def RDD_to_DF(dps):
-    dataframe_data = sqlContext.createDataFrame(dps,schema=["identifier", "day", "start_time","sample"]).coalesce(400)
+    dataframe_data = CC.sqlContext.createDataFrame(dps,schema=["identifier", "day", "start_time","sample"]).coalesce(400)
     store_to_cassandra(dataframe_data)
 
 def get_data(msg):
