@@ -22,7 +22,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from pyspark.streaming.kafka import KafkaUtils, KafkaDStream
+from pyspark.streaming.kafka import KafkaUtils, KafkaDStream, OffsetRange, TopicAndPartition
 
 
 def spark_kafka_consumer(kafka_topic: str, ssc, broker, offset_reset, consumer_group_id) -> KafkaDStream:
@@ -31,9 +31,21 @@ def spark_kafka_consumer(kafka_topic: str, ssc, broker, offset_reset, consumer_g
     :param kafka_topic:
     :return:
     """
+
+    # start = 0
+    # until = 10
+    # partition = 0
+    # topic = kafka_topic
+    # offset = OffsetRange(topic,partition,start,until)
+    # offsets = [offset]
+    #
+    fromOffset = {}
+    topicPartion = TopicAndPartition(kafka_topic[0],0)
+    fromOffset[topicPartion] = 0
+
     try:
         return KafkaUtils.createDirectStream(ssc, kafka_topic,
                                              {"metadata.broker.list": broker, "auto.offset.reset": offset_reset,
-                                              "group.id": consumer_group_id})
+                                              "group.id": consumer_group_id},fromOffsets=fromOffset)
     except Exception as e:
         print(e)

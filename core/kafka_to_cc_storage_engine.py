@@ -23,16 +23,17 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import json
+
 from core import CC
-import datetime
 from pyspark.streaming.kafka import KafkaDStream
 
 
 def verify_fields(msg):
     if "metadata" in msg and "data" in msg:
-        print("Batch size "+str(len(msg["data"])))
+        print("Batch size " + str(len(msg["data"])))
         return True
     return False
+
 
 def kafka_to_db(self, message: KafkaDStream):
     """

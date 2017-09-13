@@ -22,17 +22,10 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from core import CC
 from core.kafka_consumer import spark_kafka_consumer
-from core.kafka_producer import kafka_file_to_json_producer
 from core.kafka_to_cc_storage_engine import kafka_to_db
 from pyspark.streaming import StreamingContext
-from core import CC
-from cerebralcortex.kernel.DataStoreEngine.Data.Data import Data
-from cerebralcortex.CerebralCortex import CerebralCortex
-import os
-from pyspark.streaming.kafka import KafkaDStream
-import json
-
 
 # Kafka Consumer Configs
 batch_duration = 5  # seconds
@@ -41,14 +34,22 @@ broker = "localhost:9092"  # multiple brokers can be passed as comma separated v
 offset_reset = "smallest"  # smallest OR largest
 consumer_group_id = "md2k-test"
 
+#TEST CODE
+def storeOffsetRanges(rdd):
+    global offsetRanges
+    offsetRanges = rdd.offsetRanges()
+    return rdd
 
-#kafka_files_stream = spark_kafka_consumer(["filequeue"], ssc, broker, offset_reset, consumer_group_id)
-#kafka_files_stream.foreachRDD(kafka_file_to_json_producer)
+def printOffsetRanges(rdd):
+    for o in offsetRanges:
+        print ("%s %s %s %s" % (o.topic, o.partition, o.fromOffset, o.untilOffset))
 
+# kafka_files_stream = spark_kafka_consumer(["filequeue"], ssc, broker, offset_reset, consumer_group_id)
+# kafka_files_stream.foreachRDD(kafka_file_to_json_producer)
 
 
 kafka_processed_stream = spark_kafka_consumer(["processed_stream"], ssc, broker, offset_reset, consumer_group_id)
-kafka_processed_stream.foreachRDD(kafka_to_db)
+kafka_processed_stream.transform(storeOffsetRanges).foreachRDD(kafka_to_db)
 
 ssc.start()
 ssc.awaitTermination()
