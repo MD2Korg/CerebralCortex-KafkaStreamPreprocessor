@@ -46,6 +46,6 @@ def spark_kafka_consumer(kafka_topic: str, ssc, broker, offset_reset, consumer_g
     try:
         return KafkaUtils.createDirectStream(ssc, kafka_topic,
                                              {"metadata.broker.list": broker, "auto.offset.reset": offset_reset,
-                                              "group.id": consumer_group_id},fromOffsets=fromOffset)
+                                              "group.id": consumer_group_id})#,fromOffsets=fromOffset)
     except Exception as e:
         print(e)
