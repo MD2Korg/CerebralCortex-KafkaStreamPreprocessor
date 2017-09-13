@@ -25,10 +25,9 @@
 import json
 import os
 
-#from core import CC
+# from core import CC
 from pyspark.streaming.kafka import KafkaDStream
 from util.util import row_to_datapoint, chunks, get_gzip_file_contents, rename_file
-from pprint import pprint
 
 
 def verify_fields(msg):
@@ -37,6 +36,7 @@ def verify_fields(msg):
             return True
     return False
 
+
 def file_processor(msg):
     metadata_header = msg["metadata"]
     gzip_file_content = get_gzip_file_contents(msg["filename"])
@@ -44,20 +44,23 @@ def file_processor(msg):
     rename_file(msg["filename"])
     return [msg["filename"], metadata_header, lines]
 
+
 def message_generator(data):
     filename = data[0]
     metadata_header = data[1]
     lines = data[2]
     result = []
-    for d in chunks(lines,10000):
+    for d in chunks(lines, 10000):
         json_object = {'filename': filename, 'metadata': metadata_header, 'data': d}
         result.append(json_object)
     return result
 
+
 def CC_send(data):
     for msg in data:
-        print("Sending", msg['filename'],len(msg['data']))
-        #CC.kafka_produce_message("processed_stream", msg)
+        print("Sending", msg['filename'], len(msg['data']))
+        # CC.kafka_produce_message("processed_stream", msg)
+
 
 def kafka_file_to_json_producer(message: KafkaDStream):
     """
@@ -68,9 +71,5 @@ def kafka_file_to_json_producer(message: KafkaDStream):
     records = message.map(lambda r: json.loads(r[1]))
     valid_records = records.filter(verify_fields).repartition(4)
     results = valid_records.map(file_processor).map(message_generator).map(CC_send)
-    
-    print("Iteration count:",results.count())
 
-
-
-
+    print("Iteration count:", results.count())

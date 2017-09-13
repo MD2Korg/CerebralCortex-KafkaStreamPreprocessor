@@ -24,10 +24,10 @@
 
 import datetime
 import gzip
-import os
+import json
+
 from cerebralcortex.kernel.datatypes.datastream import DataStream, DataPoint
 from dateutil.parser import parse
-import json
 
 
 def get_gzip_file_contents(file_name: str) -> str:
@@ -92,14 +92,13 @@ def json_to_datapoints(json_obj):
         sample = json.dumps(json_obj["value"])
     start_time = parse(json_obj["starttime"])
 
-    if "endtime" in json_obj: #Test-code, this if will not be executed
+    if "endtime" in json_obj:  # Test-code, this if will not be executed
         return DataPoint(start_time=start_time, end_time=json_obj["endtime"], sample=sample)
     else:
         return DataPoint(start_time=start_time, sample=sample)
 
 
 def json_to_datastream(json_obj, stream_type):
-
     data = json_obj["data"]
     metadata = json_obj["metadata"]
     identifier = metadata["identifier"]
@@ -110,7 +109,7 @@ def json_to_datastream(json_obj, stream_type):
     annotations = metadata["annotations"]
     stream_type = stream_type
     start_time = data[0]["starttime"]
-    end_time = data[len(data)-1]["starttime"]
+    end_time = data[len(data) - 1]["starttime"]
     datapoints = list(map(json_to_datapoints, data))
 
     return DataStream(identifier,
