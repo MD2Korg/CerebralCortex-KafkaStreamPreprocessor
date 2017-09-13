@@ -25,7 +25,7 @@
 import json
 import os
 
-from core import CC
+#from core import CC
 from pyspark.streaming.kafka import KafkaDStream
 from util.util import row_to_datapoint, chunks, get_gzip_file_contents, rename_file
 from pprint import pprint
@@ -57,7 +57,7 @@ def message_generator(data):
 def CC_send(data):
     for msg in data:
         print("Sending", msg['filename'],len(msg['data']))
-        CC.kafka_produce_message("processed_stream", msg)
+        #CC.kafka_produce_message("processed_stream", msg)
 
 def kafka_file_to_json_producer(message: KafkaDStream):
     """
@@ -66,7 +66,7 @@ def kafka_file_to_json_producer(message: KafkaDStream):
     """
 
     records = message.map(lambda r: json.loads(r[1]))
-    valid_records = records.filter(verify_fields).repartition(8)
+    valid_records = records.filter(verify_fields).repartition(4)
     results = valid_records.map(file_processor).map(message_generator).map(CC_send)
     
     print("Iteration count:",results.count())
