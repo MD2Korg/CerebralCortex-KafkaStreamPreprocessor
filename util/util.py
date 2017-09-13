@@ -25,6 +25,9 @@
 import datetime
 import gzip
 import os
+from cerebralcortex.kernel.datatypes.datastream import DataStream, DataPoint
+from dateutil.parser import parse
+import json
 
 
 def get_gzip_file_contents(file_name: str) -> str:
@@ -78,3 +81,45 @@ def rename_file(old: str):
     new_file_name = str.replace(old, old_file_name, new_file_name)
     # if os.path.isfile(old):
     #     os.rename(old, new_file_name)
+
+
+##########################
+
+def json_to_datapoints(json_obj):
+    if isinstance(json_obj["value"], str):
+        sample = json_obj["value"]
+    else:
+        sample = json.dumps(json_obj["value"])
+    start_time = parse(json_obj["starttime"])
+
+    if "endtime" in json_obj: #Test-code, this if will not be executed
+        return DataPoint(start_time=start_time, end_time=json_obj["endtime"], sample=sample)
+    else:
+        return DataPoint(start_time=start_time, sample=sample)
+
+
+def json_to_datastream(json_obj, stream_type):
+
+    data = json_obj["data"]
+    metadata = json_obj["metadata"]
+    identifier = metadata["identifier"]
+    owner = metadata["owner"]
+    name = metadata["name"]
+    data_descriptor = metadata["data_descriptor"]
+    execution_context = metadata["execution_context"]
+    annotations = metadata["annotations"]
+    stream_type = stream_type
+    start_time = data[0]["starttime"]
+    end_time = data[len(data)-1]["starttime"]
+    datapoints = list(map(json_to_datapoints, data))
+
+    return DataStream(identifier,
+                      owner,
+                      name,
+                      data_descriptor,
+                      execution_context,
+                      annotations,
+                      stream_type,
+                      start_time,
+                      end_time,
+                      datapoints)
