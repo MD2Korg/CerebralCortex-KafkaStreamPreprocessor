@@ -23,29 +23,34 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from pyspark.streaming.kafka import KafkaUtils, KafkaDStream, OffsetRange, TopicAndPartition
+from core import CC
 
-
-def spark_kafka_consumer(kafka_topic: str, ssc, broker, offset_reset, consumer_group_id) -> KafkaDStream:
+def spark_kafka_consumer(kafka_topic: str, ssc, broker, consumer_group_id) -> KafkaDStream:
     """
-
+    supports only one topic at a time
     :param kafka_topic:
     :return:
     """
+    offsets = CC.get_kafka_offsets(kafka_topic[0])
 
-    # start = 0
-    # until = 10
-    # partition = 0
-    # topic = kafka_topic
-    # offset = OffsetRange(topic,partition,start,until)
-    # offsets = [offset]
-    #
+    if bool(offsets):
+        offset_start = offsets["offset_start"]
+        offset_until = offsets["offset_until"]
+        topic_partition = offsets["topic_partition"]
+        topic = offsets["topic"]
+    else:
+        offset_start = 0 #offset to start from
+        offset_until = 0
+        topic_partition = 0
+        topic = kafka_topic[0]
+
     fromOffset = {}
-    topicPartion = TopicAndPartition(kafka_topic[0],0)
-    fromOffset[topicPartion] = 0
+    topicPartion = TopicAndPartition(topic,int(topic_partition))
+    fromOffset[topicPartion] = int(offset_start)
 
     try:
         return KafkaUtils.createDirectStream(ssc, kafka_topic,
-                                             {"metadata.broker.list": broker, "auto.offset.reset": offset_reset,
-                                              "group.id": consumer_group_id})#,fromOffsets=fromOffset)
+                                             {"metadata.broker.list": broker,
+                                              "group.id": consumer_group_id},fromOffsets=fromOffset)
     except Exception as e:
         print(e)
