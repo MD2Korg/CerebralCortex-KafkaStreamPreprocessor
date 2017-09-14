@@ -40,6 +40,7 @@ def kafka_to_db(self, message: KafkaDStream):
 
     :param message:
     """
+
     records = message.map(lambda r: json.loads(r[1]))
     valid_records = records.filter(verify_fields)
 
