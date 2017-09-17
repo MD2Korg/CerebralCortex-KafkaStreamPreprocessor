@@ -25,6 +25,7 @@
 import datetime
 import gzip
 import json
+import os
 
 from cerebralcortex.kernel.datatypes.datastream import DataStream, DataPoint
 from dateutil.parser import parse
@@ -79,8 +80,8 @@ def rename_file(old: str):
     old_file_name = old.rsplit('/', 1)[1]
     new_file_name = "PROCESSED_" + old_file_name
     new_file_name = str.replace(old, old_file_name, new_file_name)
-    # if os.path.isfile(old):
-    #     os.rename(old, new_file_name)
+    if os.path.isfile(old):
+        os.rename(old, new_file_name)
 
 
 ##########################

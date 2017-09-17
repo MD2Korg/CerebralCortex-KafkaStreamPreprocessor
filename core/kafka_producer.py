@@ -72,4 +72,4 @@ def kafka_file_to_json_producer(message: KafkaDStream):
     valid_records = records.filter(verify_fields).repartition(4)
     results = valid_records.map(file_processor).map(message_generator).map(CC_send)
 
-    print("Iteration count:", results.count())
+    print("File Iteration count:", results.count())

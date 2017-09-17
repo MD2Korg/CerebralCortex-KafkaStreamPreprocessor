@@ -26,13 +26,13 @@ from core import CC
 from core.kafka_consumer import spark_kafka_consumer
 from core.kafka_to_cc_storage_engine import kafka_to_db
 from pyspark.streaming import StreamingContext
-from core.kafka_producer import kafka_file_to_json_producer
 from core.kafka_offset import storeOffsetRanges
+from core.kafka_producer import kafka_file_to_json_producer
+
 # Kafka Consumer Configs
 batch_duration = 5  # seconds
 ssc = StreamingContext(CC.getOrCreateSC(type="sparkContext"), batch_duration)
 broker = "localhost:9092"  # multiple brokers can be passed as comma separated values
-offset_reset = "smallest"  # smallest OR largest
 consumer_group_id = "md2k-test"
 
 

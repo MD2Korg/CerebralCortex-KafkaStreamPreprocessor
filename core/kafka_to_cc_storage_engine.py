@@ -46,4 +46,4 @@ def kafka_to_db(self, message: KafkaDStream):
 
     valid_records.foreach(lambda x: CC.save_datastream(x, "json"))
 
-    print("Ready...")
+    print("Ready to process stream...")

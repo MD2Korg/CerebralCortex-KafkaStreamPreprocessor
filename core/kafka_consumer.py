@@ -25,32 +25,34 @@
 from pyspark.streaming.kafka import KafkaUtils, KafkaDStream, OffsetRange, TopicAndPartition
 from core import CC
 
+
 def spark_kafka_consumer(kafka_topic: str, ssc, broker, consumer_group_id) -> KafkaDStream:
     """
     supports only one topic at a time
     :param kafka_topic:
     :return:
     """
-    offsets = CC.get_kafka_offsets(kafka_topic[0])
-
-    if bool(offsets):
-        offset_start = offsets["offset_start"]
-        offset_until = offsets["offset_until"]
-        topic_partition = offsets["topic_partition"]
-        topic = offsets["topic"]
-    else:
-        offset_start = 0 #offset to start from
-        offset_until = 0
-        topic_partition = 0
-        topic = kafka_topic[0]
-
-    fromOffset = {}
-    topicPartion = TopicAndPartition(topic,int(topic_partition))
-    fromOffset[topicPartion] = int(offset_start)
-
     try:
-        return KafkaUtils.createDirectStream(ssc, kafka_topic,
-                                             {"metadata.broker.list": broker,
-                                              "group.id": consumer_group_id},fromOffsets=fromOffset)
+        offsets = CC.get_kafka_offsets(kafka_topic[0])
+
+        if bool(offsets):
+            fromOffset = {}
+            for offset in offsets:
+                offset_start = offset["offset_start"]
+                offset_until = offset["offset_until"]
+                topic_partition = offset["topic_partition"]
+                topic = offset["topic"]
+
+                topicPartion = TopicAndPartition(topic,int(topic_partition))
+                fromOffset[topicPartion] = int(offset_start)
+
+            return KafkaUtils.createDirectStream(ssc, kafka_topic,
+                                                 {"metadata.broker.list": broker,
+                                                  "group.id": consumer_group_id},fromOffsets=fromOffset)
+        else:
+            offset_reset = "smallest"  # smallest OR largest
+            return KafkaUtils.createDirectStream(ssc, kafka_topic,
+                                                 {"metadata.broker.list": broker, "auto.offset.reset":offset_reset,
+                                                  "group.id": consumer_group_id})
     except Exception as e:
         print(e)
