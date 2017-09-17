@@ -27,6 +27,7 @@ from core import CC
 
 def storeOffsetRanges(rdd):
     offsetRanges = rdd.offsetRanges()
-    offsets = offsetRanges[0]
-    CC.store_or_update_Kafka_offset(offsets.topic, offsets.partition, offsets.fromOffset, offsets.untilOffset)
+    for offsets in offsetRanges:
+        #print ("%s %s %s %s" % (offsets.topic, offsets.partition, offsets.fromOffset, offsets.untilOffset))
+        CC.store_or_update_Kafka_offset(offsets.topic, offsets.partition, offsets.fromOffset, offsets.untilOffset)
     return rdd
