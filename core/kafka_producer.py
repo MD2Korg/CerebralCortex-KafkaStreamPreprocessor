@@ -30,18 +30,18 @@ from pyspark.streaming.kafka import KafkaDStream
 from util.util import row_to_datapoint, chunks, get_gzip_file_contents, rename_file
 
 
-def verify_fields(msg):
+def verify_fields(msg, data_path):
     if "metadata" in msg and "filename" in msg:
-        if os.path.isfile(msg["filename"]):
+        if os.path.isfile(data_path + msg["filename"]):
             return True
     return False
 
 
-def file_processor(msg):
+def file_processor(msg, data_path):
     metadata_header = msg["metadata"]
-    gzip_file_content = get_gzip_file_contents(msg["filename"])
+    gzip_file_content = get_gzip_file_contents(data_path + msg["filename"])
     lines = list(map(lambda x: row_to_datapoint(x), gzip_file_content.splitlines()))
-    rename_file(msg["filename"])
+    rename_file(data_path + msg["filename"])
     return [msg["filename"], metadata_header, lines]
 
 
@@ -62,14 +62,13 @@ def CC_send(data):
         CC.kafka_produce_message("processed_stream", msg)
 
 
-def kafka_file_to_json_producer(message: KafkaDStream):
+def kafka_file_to_json_producer(message: KafkaDStream, data_path):
     """
     Read convert gzip file data into json object and publish it on Kafka
     :param message:
     """
-
     records = message.map(lambda r: json.loads(r[1]))
-    valid_records = records.filter(verify_fields).repartition(4)
-    results = valid_records.map(file_processor).map(message_generator).map(CC_send)
+    valid_records = records.filter(lambda rdd: verify_fields(rdd,data_path)).repartition(4)
+    results = valid_records.map(lambda rdd: file_processor(rdd, data_path)).map(message_generator).map(CC_send)
 
     print("File Iteration count:", results.count())
