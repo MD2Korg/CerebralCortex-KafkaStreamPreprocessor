@@ -22,6 +22,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import sys
 from core import CC
 from core.kafka_consumer import spark_kafka_consumer
 from core.kafka_to_cc_storage_engine import kafka_to_db
@@ -32,12 +33,16 @@ from core.kafka_producer import kafka_file_to_json_producer
 # Kafka Consumer Configs
 batch_duration = 5  # seconds
 ssc = StreamingContext(CC.getOrCreateSC(type="sparkContext"), batch_duration)
+CC.getOrCreateSC(type="sparkContext").setLogLevel("WARN")
 broker = "localhost:9092"  # multiple brokers can be passed as comma separated values
 consumer_group_id = "md2k-test"
 
+data_path = sys.argv[1]
+if (data_path[-1] != '/'):
+    data_path += '/'
 
 kafka_files_stream = spark_kafka_consumer(["filequeue"], ssc, broker, consumer_group_id)
-kafka_files_stream.transform(storeOffsetRanges).foreachRDD(kafka_file_to_json_producer)
+kafka_files_stream.transform(storeOffsetRanges).foreachRDD(lambda rdd: kafka_file_to_json_producer(rdd, data_path))
 
 
 kafka_processed_stream = spark_kafka_consumer(["processed_stream"], ssc, broker, consumer_group_id)
