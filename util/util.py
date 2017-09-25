@@ -64,11 +64,26 @@ def row_to_datapoint(row: str) -> dict:
     ts, offset, values = row.split(',', 2)
     ts = int(ts) / 1000.0
     offset = int(offset)
-    values = list(map(float, values.split(',')))
+
+    if isinstance(values, tuple):
+        values = list(values)
+    else:
+        try:
+            json.loads(values)
+            values = values
+        except:
+            try:
+                values = list(map(float, values.split(',')))
+            except:
+                values = values
+    # try:
+    #     values = list(map(float, values.split(',')))
+    # except Exception as e:
+    #     print(e)
+
 
     timezone = datetime.timezone(datetime.timedelta(milliseconds=offset))
     ts = datetime.datetime.fromtimestamp(ts, timezone)
-
     return {'starttime': str(ts), 'value': values}
 
 
