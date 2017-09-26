@@ -35,7 +35,7 @@ def verify_fields(msg):
     return False
 
 
-def kafka_to_db(self, message: KafkaDStream):
+def kafka_to_db(message: KafkaDStream):
     """
 
     :param message:
