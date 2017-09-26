@@ -41,8 +41,8 @@ data_path = sys.argv[1]
 if (data_path[-1] != '/'):
     data_path += '/'
 
-kafka_files_stream = spark_kafka_consumer(["filequeue"], ssc, broker, consumer_group_id)
-kafka_files_stream.transform(storeOffsetRanges).foreachRDD(lambda rdd: kafka_file_to_json_producer(rdd, data_path))
+#kafka_files_stream = spark_kafka_consumer(["filequeue"], ssc, broker, consumer_group_id)
+#kafka_files_stream.transform(storeOffsetRanges).foreachRDD(lambda rdd: kafka_file_to_json_producer(rdd, data_path))
 
 
 kafka_processed_stream = spark_kafka_consumer(["processed_stream"], ssc, broker, consumer_group_id)
