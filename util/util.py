@@ -69,18 +69,15 @@ def row_to_datapoint(row: str) -> dict:
         values = list(values)
     else:
         try:
-            json.loads(values)
-            values = values
+            values = json.loads(values)
         except:
             try:
-                values = list(map(float, values.split(',')))
+                values = [float(values)]
             except:
-                values = values
-    # try:
-    #     values = list(map(float, values.split(',')))
-    # except Exception as e:
-    #     print(e)
-
+                try:
+                    values = list(map(float, values.split(',')))
+                except:
+                    values = values
 
     timezone = datetime.timezone(datetime.timedelta(milliseconds=offset))
     ts = datetime.datetime.fromtimestamp(ts, timezone)
