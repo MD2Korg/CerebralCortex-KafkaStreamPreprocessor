@@ -34,6 +34,9 @@ def verify_fields(msg):
         return True
     return False
 
+def store_streams(data):
+    CC.save_datastream_to_influxdb(data)
+    #CC.save_datastream(data, "json")
 
 def kafka_to_db(message: KafkaDStream):
     """
@@ -44,6 +47,6 @@ def kafka_to_db(message: KafkaDStream):
     records = message.map(lambda r: json.loads(r[1]))
     valid_records = records.filter(verify_fields)
 
-    valid_records.foreach(lambda x: CC.save_datastream(x, "json"))
+    valid_records.foreach(lambda stream_data: store_streams(stream_data))
 
     print("Ready to process stream...")
