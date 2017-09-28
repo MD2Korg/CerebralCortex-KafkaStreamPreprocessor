@@ -24,8 +24,8 @@
 
 import json
 import os
-
 from core import CC
+from util.util import get_chunk_size
 from pyspark.streaming.kafka import KafkaDStream
 from util.util import row_to_datapoint, chunks, get_gzip_file_contents, rename_file
 
@@ -44,13 +44,14 @@ def file_processor(msg, data_path):
     rename_file(data_path + msg["filename"])
     return [msg["filename"], metadata_header, lines]
 
-
+from pympler import asizeof
 def message_generator(data):
     filename = data[0]
     metadata_header = data[1]
     lines = data[2]
     result = []
-    for d in chunks(lines, 10000):
+
+    for d in chunks(lines, get_chunk_size(lines)):
         json_object = {'filename': filename, 'metadata': metadata_header, 'data': d}
         result.append(json_object)
     return result
