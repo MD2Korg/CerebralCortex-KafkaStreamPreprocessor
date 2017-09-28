@@ -25,7 +25,7 @@
 import datetime
 import gzip
 import json
-import os
+from pympler import asizeof
 
 from cerebralcortex.kernel.datatypes.datastream import DataStream, DataPoint
 from dateutil.parser import parse
@@ -53,6 +53,10 @@ def chunks(data: str, max_len: int) -> str:
     for i in range(0, len(data), max_len):
         yield data[i:i + max_len]
 
+def get_chunk_size(data):
+
+    chunk_size = 750000/(asizeof.asizeof(data)/len(data)) #0.75MB chunk size without metadata
+    return round(chunk_size)
 
 def row_to_datapoint(row: str) -> dict:
     """
