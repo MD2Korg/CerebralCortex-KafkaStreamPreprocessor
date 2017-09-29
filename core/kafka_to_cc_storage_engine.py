@@ -36,7 +36,7 @@ def verify_fields(msg):
 
 def store_streams(data):
     CC.save_datastream_to_influxdb(data)
-    #CC.save_datastream(data, "json")
+    CC.save_datastream(data, "json")
 
 def kafka_to_db(message: KafkaDStream):
     """
