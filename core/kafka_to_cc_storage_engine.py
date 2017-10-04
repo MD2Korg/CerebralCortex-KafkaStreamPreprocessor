@@ -26,6 +26,7 @@ import json
 
 from core import CC
 from pyspark.streaming.kafka import KafkaDStream
+from core.kafka_offset import storeOffsetRanges
 
 
 def verify_fields(msg):
@@ -36,17 +37,18 @@ def verify_fields(msg):
 
 def store_streams(data):
     CC.save_datastream_to_influxdb(data)
-    CC.save_datastream(data, "json")
+    #CC.save_datastream(data, "json")
 
 def kafka_to_db(message: KafkaDStream):
     """
 
     :param message:
     """
-
     records = message.map(lambda r: json.loads(r[1]))
     valid_records = records.filter(verify_fields)
 
     valid_records.foreach(lambda stream_data: store_streams(stream_data))
+
+    storeOffsetRanges(message)
 
     print("Ready to process stream...")
