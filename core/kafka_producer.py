@@ -69,6 +69,7 @@ def kafka_file_to_json_producer(message: KafkaDStream, data_path):
     Read convert gzip file data into json object and publish it on Kafka
     :param message:
     """
+
     records = message.map(lambda r: json.loads(r[1]))
     valid_records = records.filter(lambda rdd: verify_fields(rdd,data_path)).repartition(4)
     results = valid_records.map(lambda rdd: file_processor(rdd, data_path)).map(message_generator).map(CC_send)

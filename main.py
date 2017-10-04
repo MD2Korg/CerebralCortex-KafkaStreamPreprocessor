@@ -27,7 +27,6 @@ from core import CC
 from core.kafka_consumer import spark_kafka_consumer
 from core.kafka_to_cc_storage_engine import kafka_to_db
 from pyspark.streaming import StreamingContext
-from core.kafka_offset import storeOffsetRanges
 from core.kafka_producer import kafka_file_to_json_producer
 
 # Kafka Consumer Configs
@@ -42,8 +41,8 @@ if (data_path[-1] != '/'):
     data_path += '/'
 
 
-#kafka_files_stream = spark_kafka_consumer(["filequeue"], ssc, broker, consumer_group_id)
-#kafka_files_stream.foreachRDD(lambda rdd: kafka_file_to_json_producer(rdd, data_path))
+kafka_files_stream = spark_kafka_consumer(["filequeue"], ssc, broker, consumer_group_id)
+kafka_files_stream.foreachRDD(lambda rdd: kafka_file_to_json_producer(rdd, data_path))
 
 
 kafka_processed_stream = spark_kafka_consumer(["processed_stream"], ssc, broker, consumer_group_id)

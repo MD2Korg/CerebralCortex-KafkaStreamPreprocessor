@@ -23,11 +23,13 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from core import CC
-
+from cerebralcortex.kernel.utils.logging import cc_log
 
 def storeOffsetRanges(rdd):
     offsetRanges = rdd.offsetRanges()
     for offsets in offsetRanges:
-        #print ("%s %s %s %s" % (offsets.topic, offsets.partition, offsets.fromOffset, offsets.untilOffset))
-        CC.store_or_update_Kafka_offset(offsets.topic, offsets.partition, offsets.fromOffset, offsets.untilOffset)
-    return rdd
+        try:
+            CC.store_or_update_Kafka_offset(offsets.topic, offsets.partition, offsets.fromOffset, offsets.untilOffset)
+        except:
+            cc_log()
+

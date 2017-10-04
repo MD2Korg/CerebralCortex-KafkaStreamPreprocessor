@@ -27,7 +27,7 @@ import json
 from core import CC
 from pyspark.streaming.kafka import KafkaDStream
 from core.kafka_offset import storeOffsetRanges
-
+from cerebralcortex.kernel.utils.logging import cc_log
 
 
 def verify_fields(msg):
@@ -36,9 +36,13 @@ def verify_fields(msg):
         return True
     return False
 
+
 def store_streams(data):
-    CC.save_datastream_to_influxdb(data)
-    #CC.save_datastream(data, "json")
+    try:
+        CC.save_datastream_to_influxdb(data)
+        CC.save_datastream(data, "json")
+    except:
+        cc_log()
 
 
 def kafka_to_db(message: KafkaDStream):
