@@ -25,10 +25,7 @@
 import json
 import os
 from core import CC
-<<<<<<< HEAD
 from core.kafka_offset import storeOffsetRanges
-=======
->>>>>>> origin/master
 from util.util import get_chunk_size
 from pyspark.streaming.kafka import KafkaDStream
 from util.util import row_to_datapoint, chunks, get_gzip_file_contents, rename_file
@@ -75,9 +72,7 @@ def kafka_file_to_json_producer(message: KafkaDStream, data_path):
     records = message.map(lambda r: json.loads(r[1]))
     valid_records = records.filter(lambda rdd: verify_fields(rdd,data_path)).repartition(4)
     results = valid_records.map(lambda rdd: file_processor(rdd, data_path)).map(message_generator).map(CC_send)
-<<<<<<< HEAD
-    storeOffsetRanges(message)
-=======
 
->>>>>>> origin/master
+    storeOffsetRanges(message)
+
     print("File Iteration count:", results.count())
