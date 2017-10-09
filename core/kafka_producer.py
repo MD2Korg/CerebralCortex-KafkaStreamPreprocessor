@@ -29,6 +29,7 @@ from core.kafka_offset import storeOffsetRanges
 from util.util import get_chunk_size
 from pyspark.streaming.kafka import KafkaDStream
 from util.util import row_to_datapoint, chunks, get_gzip_file_contents, rename_file
+from cerebralcortex.kernel.utils.logging import cc_log
 
 
 def verify_fields(msg, data_path):
@@ -40,12 +41,18 @@ def verify_fields(msg, data_path):
 
 def file_processor(msg, data_path):
     metadata_header = msg["metadata"]
-    gzip_file_content = get_gzip_file_contents(data_path + msg["filename"])
-    lines = list(map(lambda x: row_to_datapoint(x), gzip_file_content.splitlines()))
-    rename_file(data_path + msg["filename"])
-    return [msg["filename"], metadata_header, lines]
 
-from pympler import asizeof
+    try:
+        gzip_file_content = get_gzip_file_contents(data_path + msg["filename"])
+        lines = list(map(lambda x: row_to_datapoint(x), gzip_file_content.splitlines()))
+        rename_file(data_path + msg["filename"])
+        return [msg["filename"], metadata_header, lines]
+    except Exception as e:
+        error_log = "In Kafka preprocessor - Error in processing file: "+str(msg["filename"])+" - "+str(e)
+        cc_log(error_log, "ERROR")
+        return [msg["filename"], metadata_header, []]
+
+
 def message_generator(data):
     filename = data[0]
     metadata_header = data[1]
@@ -73,6 +80,7 @@ def kafka_file_to_json_producer(message: KafkaDStream, data_path):
     records = message.map(lambda r: json.loads(r[1]))
     valid_records = records.filter(lambda rdd: verify_fields(rdd,data_path)).repartition(4)
     results = valid_records.map(lambda rdd: file_processor(rdd, data_path)).map(message_generator).map(CC_send)
+
 
     storeOffsetRanges(message)
 
