@@ -55,8 +55,11 @@ def chunks(data: str, max_len: int) -> str:
 
 def get_chunk_size(data):
 
-    chunk_size = 750000/(asizeof.asizeof(data)/len(data)) #0.75MB chunk size without metadata
-    return round(chunk_size)
+    if len(data) > 0:
+        chunk_size = 750000/(asizeof.asizeof(data)/len(data)) #0.75MB chunk size without metadata
+        return round(chunk_size)
+    else:
+        return 100
 
 def row_to_datapoint(row: str) -> dict:
     """

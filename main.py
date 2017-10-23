@@ -30,7 +30,7 @@ from pyspark.streaming import StreamingContext
 from core.kafka_producer import kafka_file_to_json_producer
 
 # Kafka Consumer Configs
-batch_duration = 5  # seconds
+batch_duration = 60  # seconds
 ssc = StreamingContext(CC.getOrCreateSC(type="sparkContext"), batch_duration)
 CC.getOrCreateSC(type="sparkContext").setLogLevel("WARN")
 broker = "localhost:9092"  # multiple brokers can be passed as comma separated values
@@ -43,6 +43,7 @@ if (data_path[-1] != '/'):
 
 kafka_files_stream = spark_kafka_consumer(["filequeue"], ssc, broker, consumer_group_id)
 kafka_files_stream.foreachRDD(lambda rdd: kafka_file_to_json_producer(rdd, data_path))
+
 
 
 kafka_processed_stream = spark_kafka_consumer(["processed_stream"], ssc, broker, consumer_group_id)
