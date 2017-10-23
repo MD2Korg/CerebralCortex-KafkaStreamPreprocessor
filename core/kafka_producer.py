@@ -24,7 +24,6 @@
 
 import json
 import os
-from dateutil.parser import parse
 from cerebralcortex.kernel.datatypes.datastream import DataStream
 from datetime import datetime
 from cerebralcortex.kernel.utils.logging import cc_log
@@ -54,7 +53,7 @@ def file_processor(msg: dict, data_path: str) -> DataStream:
     :param data_path:
     :return:
     """
-    metadata_header = json.loads(msg["metadata"])
+    metadata_header = msg["metadata"]
 
     try:
         gzip_file_content = get_gzip_file_contents(data_path + msg["filename"])
@@ -88,46 +87,10 @@ def file_processor(msg: dict, data_path: str) -> DataStream:
                           start_time,
                           end_time,
                           datapoints)
-        #return {'metadata': json.loads(metadata_header), 'data': datapoints}
     except Exception as e:
         error_log = "In Kafka preprocessor - Error in processing file: " + str(msg["filename"]) + " - " + str(e)
         cc_log(error_log, "ERROR")
         return [msg["filename"], metadata_header, []]
-
-
-# def message_generator(data: dict) -> dict:
-#     """
-#     Chunk file into small batches and publish them along with metadata on kafka
-#     NOTE: It is not being used as data is directly going to DBs
-#     :param data:
-#     :return:
-#     """
-#     filename = data[0]
-#     metadata_header = data[1]
-#     lines = data[2]
-#     result = []
-#
-#     for d in chunks(lines, get_chunk_size(lines)):
-#         json_object = {'filename': filename, 'metadata': metadata_header, 'data': d}
-#         result.append(json_object)
-#     return result
-#
-#
-# def chunk_data_into_batches(data: dict) -> dict:
-#     """
-#     Chunk data into batches
-#     :param data:
-#     :return:
-#     """
-#     metadata_header = data[1]
-#     data = data[2]
-#     result = []
-#     batch_size = 60000
-#
-#     for d in data:
-#         json_object = {'metadata': json.loads(metadata_header), 'data': [d]}
-#         result.append(json_object)
-#     return result
 
 
 def store_stream(data: dict):
@@ -145,13 +108,6 @@ def store_stream(data: dict):
     except:
         cc_log()
 
-    # for d in data:
-    #     print(d)
-    #     try:
-    #         CC.save_datastream_to_influxdb(d)
-    #         CC.save_datastream(d, "json")
-    #     except:
-    #         cc_log()
 
 def kafka_file_to_json_producer(message: KafkaDStream, data_path):
     """
