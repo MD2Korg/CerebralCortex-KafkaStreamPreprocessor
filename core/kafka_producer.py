@@ -30,7 +30,10 @@ from util.util import get_chunk_size
 from pyspark.streaming.kafka import KafkaDStream
 from util.util import row_to_datapoint, chunks, get_gzip_file_contents, rename_file
 from cerebralcortex.kernel.utils.logging import cc_log
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 
 def verify_fields(msg, data_path):
     if "metadata" in msg and "filename" in msg:
@@ -45,7 +48,6 @@ def file_processor(msg, data_path):
     try:
         gzip_file_content = get_gzip_file_contents(data_path + msg["filename"])
         lines = list(map(lambda x: row_to_datapoint(x), gzip_file_content.splitlines()))
-        rename_file(data_path + msg["filename"])
         return [msg["filename"], metadata_header, lines]
     except Exception as e:
         error_log = "In Kafka preprocessor - Error in processing file: "+str(msg["filename"])+" - "+str(e)
