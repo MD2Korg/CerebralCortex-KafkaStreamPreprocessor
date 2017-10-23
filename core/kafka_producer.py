@@ -24,36 +24,56 @@
 
 import json
 import os
-from core import CC
-from core.kafka_offset import storeOffsetRanges
-from util.util import get_chunk_size
-from pyspark.streaming.kafka import KafkaDStream
-from util.util import row_to_datapoint, chunks, get_gzip_file_contents, rename_file
+from typing import List
+from datetime import datetime
 from cerebralcortex.kernel.utils.logging import cc_log
 
+from core import CC
+from core.kafka_offset import storeOffsetRanges
+from pyspark.streaming.kafka import KafkaDStream
+from util.util import get_chunk_size
+from util.util import row_to_datapoint, chunks, get_gzip_file_contents, rename_file
 
-def verify_fields(msg, data_path):
+
+def verify_fields(msg: dict, data_path: str) -> bool:
+    """
+    Verify whether msg contains file name and metadata
+    :param msg:
+    :param data_path:
+    :return:
+    """
     if "metadata" in msg and "filename" in msg:
         if os.path.isfile(data_path + msg["filename"]):
             return True
     return False
 
 
-def file_processor(msg, data_path):
+def file_processor(msg: dict, data_path: str) -> List:
+    """
+    :param msg:
+    :param data_path:
+    :return:
+    """
     metadata_header = msg["metadata"]
 
     try:
         gzip_file_content = get_gzip_file_contents(data_path + msg["filename"])
         lines = list(map(lambda x: row_to_datapoint(x), gzip_file_content.splitlines()))
         rename_file(data_path + msg["filename"])
-        return [msg["filename"], metadata_header, lines]
+        return {'metadata': json.loads(metadata_header), 'data': lines}
     except Exception as e:
-        error_log = "In Kafka preprocessor - Error in processing file: "+str(msg["filename"])+" - "+str(e)
+        error_log = "In Kafka preprocessor - Error in processing file: " + str(msg["filename"]) + " - " + str(e)
         cc_log(error_log, "ERROR")
         return [msg["filename"], metadata_header, []]
 
 
-def message_generator(data):
+def message_generator(data: dict) -> dict:
+    """
+    Chunk file into small batches and publish them along with metadata on kafka
+    NOTE: It is not being used as data is directly going to DBs
+    :param data:
+    :return:
+    """
     filename = data[0]
     metadata_header = data[1]
     lines = data[2]
@@ -65,11 +85,41 @@ def message_generator(data):
     return result
 
 
-def CC_send(data):
-    for msg in data:
-        print("Sending", msg['filename'], len(msg['data']))
-        CC.kafka_produce_message("processed_stream", msg)
+def chunk_data_into_batches(data: dict) -> dict:
+    """
+    Chunk data into batches
+    :param data:
+    :return:
+    """
+    metadata_header = data[1]
+    data = data[2]
+    result = []
+    batch_size = 60000
 
+    for d in data:
+        json_object = {'metadata': json.loads(metadata_header), 'data': [d]}
+        result.append(json_object)
+    return result
+
+
+def store_stream(data: dict):
+    """
+    Store data into Cassandra, MySQL, and influxDB
+    :param data:
+    """
+    st = datetime.now()
+    #print(data)
+    CC.save_datastream(data, "json")
+    # for d in data:
+    #     print(d)
+    #     try:
+    #         CC.save_datastream_to_influxdb(d)
+    #         CC.save_datastream(d, "json")
+    #     except:
+    #         cc_log()
+
+    et = datetime.now()
+    print("Store-Stream-Time: ",et-st, " - Size - ",len(data["data"]))
 
 def kafka_file_to_json_producer(message: KafkaDStream, data_path):
     """
@@ -78,9 +128,9 @@ def kafka_file_to_json_producer(message: KafkaDStream, data_path):
     """
 
     records = message.map(lambda r: json.loads(r[1]))
-    valid_records = records.filter(lambda rdd: verify_fields(rdd,data_path)).repartition(4)
-    results = valid_records.map(lambda rdd: file_processor(rdd, data_path)).map(message_generator).map(CC_send)
-
+    valid_records = records.filter(lambda rdd: verify_fields(rdd, data_path)).repartition(4)
+    results = valid_records.map(lambda rdd: file_processor(rdd, data_path)).map(
+        store_stream)
 
     storeOffsetRanges(message)
 
