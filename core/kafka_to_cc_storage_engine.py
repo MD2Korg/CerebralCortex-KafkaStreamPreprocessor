@@ -28,19 +28,21 @@ from core import CC
 from pyspark.streaming.kafka import KafkaDStream
 from core.kafka_offset import storeOffsetRanges
 from cerebralcortex.kernel.utils.logging import cc_log
-
+import datetime
 
 def verify_fields(msg):
     if "metadata" in msg and "data" in msg:
-        print("Batch size " + str(len(msg["data"])))
+#        print("Batch size " + str(len(msg["data"])))
         return True
     return False
 
 
 def store_streams(data):
     try:
+        st = datetime.datetime.now()
         CC.save_datastream_to_influxdb(data)
         CC.save_datastream(data, "json")
+        print("Stream Saved: ", data['filename'], (datetime.datetime.now()-st))
     except:
         cc_log()
 
