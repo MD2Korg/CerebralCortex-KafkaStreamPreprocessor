@@ -53,7 +53,10 @@ def file_processor(msg: dict, data_path: str) -> DataStream:
     :param data_path:
     :return:
     """
-    metadata_header = msg["metadata"]
+    if not isinstance(msg["metadata"],dict):
+        metadata_header = json.loads(msg["metadata"])
+    else:
+        metadata_header = msg["metadata"]
 
     try:
         gzip_file_content = get_gzip_file_contents(data_path + msg["filename"])
@@ -90,23 +93,24 @@ def file_processor(msg: dict, data_path: str) -> DataStream:
     except Exception as e:
         error_log = "In Kafka preprocessor - Error in processing file: " + str(msg["filename"]) + " - " + str(e)
         cc_log(error_log, "ERROR")
-        return [msg["filename"], metadata_header, []]
+        return None
 
 
-def store_stream(data: dict):
+def store_stream(data: DataStream):
     """
     Store data into Cassandra, MySQL, and influxDB
     :param data:
     """
-    try:
-        c1 = datetime.now()
-        CC.save_datastream(data,"datastream")
-        e1 = datetime.now()
-        CC.save_datastream_to_influxdb(data)
-        i1 = datetime.now()
-        print("Cassandra Time: ", e1-c1, " Influx Time: ",i1-e1, " Batch size: ",len(data.data))
-    except:
-        cc_log()
+    if data:
+        try:
+            c1 = datetime.now()
+            CC.save_datastream(data,"datastream")
+            e1 = datetime.now()
+            CC.save_datastream_to_influxdb(data)
+            i1 = datetime.now()
+            print("Cassandra Time: ", e1-c1, " Influx Time: ",i1-e1, " Batch size: ",len(data.data))
+        except:
+            cc_log()
 
 
 def kafka_file_to_json_producer(message: KafkaDStream, data_path):
