@@ -88,8 +88,8 @@ def row_to_datapoint(row: str) -> dict:
 
     timezone = datetime.timezone(datetime.timedelta(milliseconds=offset))
     ts = datetime.datetime.fromtimestamp(ts, timezone)
-    #return DataPoint(start_time=ts, sample=values)
-    return {'starttime': str(ts), 'value': values}
+    return DataPoint(start_time=ts, sample=values)
+    #return {'starttime': str(ts), 'value': values}
 
 
 def rename_file(old: str):
