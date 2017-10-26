@@ -58,24 +58,24 @@ def file_processor(msg: dict, data_path: str) -> DataStream:
     else:
         metadata_header = msg["metadata"]
 
+    identifier = metadata_header["identifier"]
+    owner = metadata_header["owner"]
+    name = metadata_header["name"]
+    data_descriptor = metadata_header["data_descriptor"]
+    execution_context = metadata_header["execution_context"]
+    if "annotations" in metadata_header:
+        annotations = metadata_header["annotations"]
+    else:
+        annotations={}
+    if "stream_type" in metadata_header:
+        stream_type = metadata_header["stream_type"]
+    else:
+        stream_type = "ds"
+
     try:
         gzip_file_content = get_gzip_file_contents(data_path + msg["filename"])
         datapoints = list(map(lambda x: row_to_datapoint(x), gzip_file_content.splitlines()))
         rename_file(data_path + msg["filename"])
-        identifier = metadata_header["identifier"]
-        owner = metadata_header["owner"]
-        name = metadata_header["name"]
-        data_descriptor = metadata_header["data_descriptor"]
-        execution_context = metadata_header["execution_context"]
-
-        if "annotations" in metadata_header:
-            annotations = metadata_header["annotations"]
-        else:
-            annotations={}
-        if "stream_type" in metadata_header:
-            stream_type = metadata_header["stream_type"]
-        else:
-            stream_type = "ds"
 
         start_time = datapoints[0].start_time
         end_time = datapoints[len(datapoints) - 1].end_time
@@ -91,8 +91,9 @@ def file_processor(msg: dict, data_path: str) -> DataStream:
                           end_time,
                           datapoints)
     except Exception as e:
-        error_log = "In Kafka preprocessor - Error in processing file: " + str(msg["filename"]) + " - " + str(e)
-        cc_log(error_log, "ERROR")
+        error_log = "In Kafka preprocessor - Error in processing file: " + str(msg["filename"])+" Owner-ID: "+owner + "Stream Name: "+name + " - " + str(e)
+        cc_log(error_log, "MISSING_DATA")
+        datapoints = []
         return None
 
 
@@ -119,7 +120,7 @@ def kafka_file_to_json_producer(message: KafkaDStream, data_path):
     :param message:
     """
     records = message.map(lambda r: json.loads(r[1]))
-    valid_records = records.filter(lambda rdd: verify_fields(rdd, data_path)).repartition(4)
+    valid_records = records.filter(lambda rdd: verify_fields(rdd, data_path))
     results = valid_records.map(lambda rdd: file_processor(rdd, data_path)).map(
         store_stream)
 
