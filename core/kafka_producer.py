@@ -24,14 +24,10 @@
 
 import json
 import os
-from cerebralcortex.kernel.datatypes.datastream import DataStream
-from datetime import datetime
-from cerebralcortex.kernel.utils.logging import cc_log
-
-from core import CC
-from core.kafka_offset import storeOffsetRanges
+from cerebralcortex.cerebralcortex import CerebralCortex
+from cerebralcortex.core.data_manager.raw.file_to_db import FileToDB
 from pyspark.streaming.kafka import KafkaDStream
-from util.util import row_to_datapoint, chunks, get_gzip_file_contents, rename_file
+from core.kafka_offset import store_offset_ranges
 
 
 def verify_fields(msg: dict, data_path: str) -> bool:
@@ -47,83 +43,23 @@ def verify_fields(msg: dict, data_path: str) -> bool:
     return False
 
 
-def file_processor(msg: dict, data_path: str) -> DataStream:
-    """
-    :param msg:
-    :param data_path:
-    :return:
-    """
-    if not isinstance(msg["metadata"],dict):
-        metadata_header = json.loads(msg["metadata"])
-    else:
-        metadata_header = msg["metadata"]
-
-    identifier = metadata_header["identifier"]
-    owner = metadata_header["owner"]
-    name = metadata_header["name"]
-    data_descriptor = metadata_header["data_descriptor"]
-    execution_context = metadata_header["execution_context"]
-    if "annotations" in metadata_header:
-        annotations = metadata_header["annotations"]
-    else:
-        annotations={}
-    if "stream_type" in metadata_header:
-        stream_type = metadata_header["stream_type"]
-    else:
-        stream_type = "ds"
-
-    try:
-        gzip_file_content = get_gzip_file_contents(data_path + msg["filename"])
-        datapoints = list(map(lambda x: row_to_datapoint(x), gzip_file_content.splitlines()))
-        rename_file(data_path + msg["filename"])
-
-        start_time = datapoints[0].start_time
-        end_time = datapoints[len(datapoints) - 1].end_time
-
-        return DataStream(identifier,
-                          owner,
-                          name,
-                          data_descriptor,
-                          execution_context,
-                          annotations,
-                          stream_type,
-                          start_time,
-                          end_time,
-                          datapoints)
-    except Exception as e:
-        error_log = "In Kafka preprocessor - Error in processing file: " + str(msg["filename"])+" Owner-ID: "+owner + "Stream Name: "+name + " - " + str(e)
-        cc_log(error_log, "MISSING_DATA")
-        datapoints = []
-        return None
+def save_data(msg, data_path, config_filepath):
+    CC = CerebralCortex(config_filepath)
+    file_to_db = FileToDB(CC)
+    # Note: to bypass influxdb, set influxdb=False
+    file_to_db.file_processor(msg, data_path, influxdb_insert=True)
 
 
-def store_stream(data: DataStream):
-    """
-    Store data into Cassandra, MySQL, and influxDB
-    :param data:
-    """
-    if data:
-        try:
-            c1 = datetime.now()
-            CC.save_datastream(data,"datastream")
-            e1 = datetime.now()
-            CC.save_datastream_to_influxdb(data)
-            i1 = datetime.now()
-            print("Cassandra Time: ", e1-c1, " Influx Time: ",i1-e1, " Batch size: ",len(data.data))
-        except:
-            cc_log()
-
-
-def kafka_file_to_json_producer(message: KafkaDStream, data_path):
+def kafka_file_to_json_producer(message: KafkaDStream, data_path, config_filepath, CC):
     """
     Read convert gzip file data into json object and publish it on Kafka
     :param message:
     """
+
     records = message.map(lambda r: json.loads(r[1]))
     valid_records = records.filter(lambda rdd: verify_fields(rdd, data_path))
-    results = valid_records.map(lambda rdd: file_processor(rdd, data_path)).map(
-        store_stream)
-
-    storeOffsetRanges(message)
+    results = valid_records.map(lambda msg: save_data(msg, data_path, config_filepath))
 
     print("File Iteration count:", results.count())
+
+    store_offset_ranges(message, CC)

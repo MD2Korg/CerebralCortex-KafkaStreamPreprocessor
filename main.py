@@ -1,4 +1,5 @@
 # Copyright (c) 2017, MD2K Center of Excellence
+# - Nasir Ali <nasir.ali08@gmail.com>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -22,30 +23,73 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import sys
-from core import CC
-from core.kafka_consumer import spark_kafka_consumer
-from core.kafka_to_cc_storage_engine import kafka_to_db
+
+from cerebralcortex.core.util.spark_helper import get_or_create_sc
 from pyspark.streaming import StreamingContext
+from cerebralcortex.cerebralcortex import CerebralCortex
 from core.kafka_producer import kafka_file_to_json_producer
-
-# Kafka Consumer Configs
-batch_duration = 5  # seconds
-ssc = StreamingContext(CC.getOrCreateSC(type="sparkContext"), batch_duration)
-CC.getOrCreateSC(type="sparkContext").setLogLevel("WARN")
-broker = "localhost:9092"  # multiple brokers can be passed as comma separated values
-consumer_group_id = "md2k-test"
-
-data_path = sys.argv[1]
-if (data_path[-1] != '/'):
-    data_path += '/'
-
-kafka_files_stream = spark_kafka_consumer(["filequeue"], ssc, broker, consumer_group_id)
-kafka_files_stream.foreachRDD(lambda rdd: kafka_file_to_json_producer(rdd, data_path))
-
-# kafka_processed_stream = spark_kafka_consumer(["processed_stream"], ssc, broker, consumer_group_id)
-# kafka_processed_stream.foreachRDD(kafka_to_db)
+from core.kafka_consumer import spark_kafka_consumer
+import argparse
 
 
-ssc.start()
-ssc.awaitTermination()
+def run():
+
+    parser = argparse.ArgumentParser(description='CerebralCortex Kafka Message Handler.')
+    parser.add_argument("-c", "--config_filepath", help="Configuration file path", required=True)
+    parser.add_argument("-d", "--data_dir", help="Directory path where all the gz files are stored by API-Server",
+                        required=True)
+    parser.add_argument("-spm", "--spark_master",
+                        help="Spark master", required=False)
+    parser.add_argument("-bd", "--batch_duration",
+                        help="How frequent kafka messages shall be checked (duration in seconds)", required=False)
+    parser.add_argument("-b", "--broker_list",
+                        help="Kafka brokers ip:port. Use comma if there are more than one broker. (e.g., 127.0.0.1:9092)",
+                        required=False)
+
+    args = vars(parser.parse_args())
+
+    if not args["data_dir"]:
+        raise ValueError("SqlData dir path cannot be empty.")
+    else:
+        data_path = str(args["data_dir"]).strip()
+        if (data_path[-1] != '/'):
+            data_path += '/'
+
+    if not args["config_filepath"]:
+        raise ValueError("Configuration file path cannot be empty")
+    else:
+        config_filepath = str(args["config_filepath"]).strip()
+
+    if not args["batch_duration"]:
+        batch_duration = 5  # seconds
+    else:
+        batch_duration = int(args["batch_duration"])
+
+    if not args["broker_list"]:
+        broker = "localhost:9092"  # multiple brokers can be passed as comma separated values
+    else:
+        broker = str(args["broker_list"]).strip()
+
+    if not args["spark_master"]:
+        spark_master = "local[*]"
+    else:
+        spark_master = args["spark_master"].strip()
+
+
+    # Kafka Consumer Configs
+    spark_context = get_or_create_sc(type="sparkContext", master=spark_master)
+    ssc = StreamingContext(spark_context, batch_duration)
+    spark_context.setLogLevel("WARN")
+    consumer_group_id = "md2k-test"
+
+    CC = CerebralCortex(config_filepath)
+
+    kafka_files_stream = spark_kafka_consumer(["filequeue"], ssc, broker, consumer_group_id, CC)
+    kafka_files_stream.foreachRDD(lambda rdd: kafka_file_to_json_producer(rdd, data_path, config_filepath, CC))
+
+    ssc.start()
+    ssc.awaitTermination()
+
+
+if __name__ == "__main__":
+    run()

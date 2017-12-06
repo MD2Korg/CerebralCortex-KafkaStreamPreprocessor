@@ -22,14 +22,11 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from core import CC
-from cerebralcortex.kernel.utils.logging import cc_log
 
-def storeOffsetRanges(rdd):
+def store_offset_ranges(rdd, CC):
     offsetRanges = rdd.offsetRanges()
     for offsets in offsetRanges:
         try:
             CC.store_or_update_Kafka_offset(offsets.topic, offsets.partition, offsets.fromOffset, offsets.untilOffset)
-        except:
-            cc_log()
-
+        except Exception as e:
+            print(e)
