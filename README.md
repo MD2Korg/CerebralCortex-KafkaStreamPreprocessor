@@ -12,10 +12,10 @@ CerebralCortex-KafkaStreamPreprocessor (CC-KSP) is a apache-spark based pub/sub 
 ## How to run?
 ### Setup environment
 To run CC-KSP, Clone/install and configure:
-* [Python3](https://www.python.org/download/releases/3.0/)
+* [Python3.5](https://www.python.org/downloads/release/python-350/)
 * [CerebralCortex-DockerCompose](https://github.com/MD2Korg/CerebralCortex-DockerCompose)
-* [Apache Spark 2.1.0](https://spark.apache.org/releases/spark-release-2-1-0.html) 
-* [CerebralCortex](https://github.com/MD2Korg/CerebralCortex)
+* [Apache Spark 2.2.0](https://spark.apache.org/releases/spark-release-2-2-0.html) 
+* [CerebralCortex](https://github.com/MD2Korg/CerebralCortex-2.0.git)
 
 ### Clone and configure CC-KSP
 * git clone https://github.com/MD2Korg/CerebralCortex-KafkaStreamPreprocessor.git
