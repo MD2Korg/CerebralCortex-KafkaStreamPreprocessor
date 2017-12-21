@@ -22,7 +22,7 @@ DATA_DIR="/home/ali/IdeaProjects/MD2K_DATA/17446/"
 # how often CC-kafka shall check for new messages (in seconds)
 BATCH_DURATION="5"
 # kafka broker ip with port, more than one brokers shale be separated by command
-KAFKA_BROKER="127.0.0.1:9092"
+KAFKA_BROKER="10.0.0.161:9092"
 # spark master
 SPARK_MASTER="local[*]"
 
