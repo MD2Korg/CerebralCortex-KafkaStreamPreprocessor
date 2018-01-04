@@ -3,7 +3,7 @@
 # Python3 path
 export PYSPARK_PYTHON=/usr/bin/python3
 
-# add current project root directory to pythonpath
+# export CerebralCortex path if CerebralCortex is not installed
 export PYTHONPATH="${PYTHONPATH}:/home/ali/IdeaProjects/CerebralCortex-2.0/"
 
 #Spark path
