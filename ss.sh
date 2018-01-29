@@ -16,7 +16,7 @@ export PYSPARK_PYTHON=/usr/bin/python3.6
 #export PATH=$SPARK_HOME/bin:$PATH
 
 # path of cc configuration path
-CC_CONFIG_FILEPATH="/cerebralcortex/code/CerebralCortex-DockerCompose/cc_config_file/cc_configuration.yml"
+CC_CONFIG_FILEPATH="/cerebralcortex/code/CerebralCortex-DockerCompose/cc_config_file/cc_vagrant_configuration.yml"
 # data directory where all gz and json files are stored
 DATA_DIR="/cerebralcortex/apiserver/data/"
 # how often CC-kafka shall check for new messages (in seconds)
