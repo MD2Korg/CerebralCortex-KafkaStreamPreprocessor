@@ -19,7 +19,7 @@ export PATH=$SPARK_HOME/bin:$PATH
 CC_CONFIG_FILEPATH="/home/vagrant/CerebralCortex-DockerCompose/cc_config_file/cc_vagrant_configuration.yml"
 
 # data directory where all gz and json files are stored
-DATA_DIR="/home/vagrant/CerebralCortex-DockerCompose/apiserver/data/"
+DATA_DIR="/home/vagrant/CerebralCortex-DockerCompose/data/"
 
 # how often CC-kafka shall check for new messages (in seconds)
 BATCH_DURATION="10"
