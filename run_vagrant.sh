@@ -30,7 +30,7 @@ KAFKA_BROKER="127.0.0.1:9092"
 # spark master
 SPARK_MASTER="local[*]"
 
-PY_FILES="$HOME/CerebralCortex/dist/MD2K_Cerebral_Cortex-2.0.0-py3.6.egg,dist/MD2K_Cerebral_Cortex_Kafka_File_Queue_Processor-2.1.0-py3.6.egg"
+PY_FILES="/home/vagrant/CerebralCortex/dist/MD2K_Cerebral_Cortex-2.0.0-py3.6.egg,dist/MD2K_Cerebral_Cortex_Kafka_File_Queue_Processor-2.1.0-py3.6.egg"
 
 spark-submit --master $SPARK_MASTER --packages \
 org.apache.spark:spark-streaming-kafka-0-8_2.11:2.2.0 --py-files $PY_FILES \
