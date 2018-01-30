@@ -10,14 +10,13 @@ export PYSPARK_PYTHON=/usr/bin/python3.6
 export SPARK_HOME=/usr/local/spark/
 
 #PySpark args (do not change unless you know what you are doing)
-#export PYSPARK_SUBMIT_ARGS="--packages
-org.apache.spark:spark-streaming-kafka-0-8_2.11:2.2.0 pyspark-shell"
+#export PYSPARK_SUBMIT_ARGS="--packages org.apache.spark:spark-streaming-kafka-0-8_2.11:2.2.0 pyspark-shell"
 
 #set spark home
 export PATH=$SPARK_HOME/bin:$PATH
 
 # path of cc configuration path
-CC_CONFIG_FILEPATH="$HOME/CerebralCortex-DockerCompose/cc_config_file/cc_configuration.yml"
+CC_CONFIG_FILEPATH="$HOME/CerebralCortex-DockerCompose/cc_config_file/cc_vagrant_configuration.yml"
 
 # data directory where all gz and json files are stored
 DATA_DIR="$HOME/CerebralCortex-DockerCompose/apiserver/data/"
