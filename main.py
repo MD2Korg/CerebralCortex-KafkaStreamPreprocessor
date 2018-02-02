@@ -38,8 +38,7 @@ def run():
     parser.add_argument("-c", "--config_filepath", help="Configuration file path", required=True)
     parser.add_argument("-d", "--data_dir", help="Directory path where all the gz files are stored by API-Server",
                         required=True)
-#    parser.add_argument("-spm", "--spark_master",
-#                        help="Spark master", required=False)
+
     parser.add_argument("-bd", "--batch_duration",
                         help="How frequent kafka messages shall be checked (duration in seconds)", required=False)
     parser.add_argument("-b", "--broker_list",
@@ -69,12 +68,6 @@ def run():
         broker = "localhost:9092"  # multiple brokers can be passed as comma separated values
     else:
         broker = str(args["broker_list"]).strip()
-
-#    if not args["spark_master"]:
-#        spark_master = "local[*]"
-#    else:
-#        spark_master = args["spark_master"].strip()
-
 
     # Kafka Consumer Configs
     spark_context = get_or_create_sc(type="sparkContext")
