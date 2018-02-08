@@ -18,7 +18,7 @@ export PATH=$SPARK_HOME/bin:$PATH
 # path of cc configuration path
 CC_CONFIG_FILEPATH="/home/ali/IdeaProjects/CerebralCortex-2.0/cerebralcortex/core/resources/cc_configuration.yml"
 # data directory where all gz and json files are stored
-DATA_DIR="/home/ali/IdeaProjects/MD2K_DATA/two_participants_data/"
+DATA_DIR="/home/ali/IdeaProjects/MD2K_DATA/data/"
 # how often CC-kafka shall check for new messages (in seconds)
 BATCH_DURATION="5"
 # kafka broker ip with port, more than one brokers shale be separated by command
