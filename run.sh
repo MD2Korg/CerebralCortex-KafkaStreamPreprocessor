@@ -6,6 +6,9 @@ export PYSPARK_PYTHON=/usr/bin/python3
 # export CerebralCortex path if CerebralCortex is not installed
 export PYTHONPATH="${PYTHONPATH}:/home/ali/IdeaProjects/CerebralCortex-2.0/"
 
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/hadoop/lib/native/libhdfs.so
+#sudo ln -s /usr/local/hadoop/lib/native/libhdfs.so /usr/lib/libhdfs.so
+
 #Spark path
 export SPARK_HOME=/home/ali/spark/spark-2.2.0-bin-hadoop2.7/
 
@@ -22,7 +25,7 @@ DATA_DIR="/home/ali/IdeaProjects/MD2K_DATA/data/"
 # how often CC-kafka shall check for new messages (in seconds)
 BATCH_DURATION="5"
 # kafka broker ip with port, more than one brokers shale be separated by command
-KAFKA_BROKER="10.0.0.161:9092"
+KAFKA_BROKER="127.0.0.1:9092"
 
 # spark master
 SPARK_MASTER="local[*]"

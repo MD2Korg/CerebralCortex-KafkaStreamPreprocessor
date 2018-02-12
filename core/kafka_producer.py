@@ -46,7 +46,7 @@ def verify_fields(msg: dict, data_path: str) -> bool:
 def save_data(msg, data_path, config_filepath):
     CC = CerebralCortex(config_filepath)
     file_to_db = FileToDB(CC)
-    file_to_db.file_processor(msg, data_path, CC.config['data_ingestion']['influxdb_in'], CC.config['data_ingestion']['cassandra_in'])
+    file_to_db.file_processor(msg, data_path, CC.config['data_ingestion']['influxdb_in'], CC.config['data_ingestion']['nosql_in'], CC.config['data_ingestion']['nosql_store'])
 
 
 def kafka_file_to_json_producer(message: KafkaDStream, data_path, config_filepath, CC):
