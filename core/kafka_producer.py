@@ -24,6 +24,7 @@
 
 import json
 import os
+import gc
 from cerebralcortex.cerebralcortex import CerebralCortex
 from cerebralcortex.core.data_manager.raw.file_to_db import FileToDB
 from pyspark.streaming.kafka import KafkaDStream
@@ -42,7 +43,7 @@ def verify_fields(msg: dict, data_path: str) -> bool:
             return True
     return True
 
-
+from pympler import asizeof
 def save_data(msg, data_path, config_filepath):
     CC = CerebralCortex(config_filepath)
     file_to_db = FileToDB(CC)

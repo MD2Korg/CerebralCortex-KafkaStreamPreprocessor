@@ -7,10 +7,10 @@ export PYSPARK_PYTHON=/usr/bin/python3
 export PYTHONPATH="${PYTHONPATH}:/home/ali/IdeaProjects/CerebralCortex-2.0/"
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/hadoop/lib/native/libhdfs.so
-#sudo ln -s /usr/local/hadoop/lib/native/libhdfs.so /usr/lib/libhdfs.so
+#sudo ln -s /opt/hadoop/lib/native/libhdfs.so /usr/lib/libhdfs.so
 
 #Spark path
-export SPARK_HOME=/home/ali/spark/spark-2.2.0-bin-hadoop2.7/
+export SPARK_HOME=/home/ali/spark/spark-2.2.1-bin-hadoop2.7/
 
 #PySpark args (do not change unless you know what you are doing)
 export PYSPARK_SUBMIT_ARGS="--packages org.apache.spark:spark-streaming-kafka-0-8_2.11:2.2.0,com.datastax.spark:spark-cassandra-connector_2.11:2.0.1 pyspark-shell"
@@ -30,4 +30,4 @@ KAFKA_BROKER="127.0.0.1:9092"
 # spark master
 SPARK_MASTER="local[*]"
 
-spark-submit --packages org.apache.spark:spark-streaming-kafka-0-8_2.11:2.2.0,com.datastax.spark:spark-cassandra-connector_2.11:2.0.1 main.py -c $CC_CONFIG_FILEPATH -d $DATA_DIR -b $KAFKA_BROKER -bd $BATCH_DURATION
+spark-submit --conf spark.streaming.kafka.maxRatePerPartition=10 --driver-memory 1g --executor-memory 1g --packages org.apache.spark:spark-streaming-kafka-0-8_2.11:2.2.0,com.datastax.spark:spark-cassandra-connector_2.11:2.0.1 main.py -c $CC_CONFIG_FILEPATH -d $DATA_DIR -b $KAFKA_BROKER -bd $BATCH_DURATION
