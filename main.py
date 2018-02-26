@@ -27,7 +27,7 @@
 from cerebralcortex.core.util.spark_helper import get_or_create_sc
 from pyspark.streaming import StreamingContext
 from cerebralcortex.cerebralcortex import CerebralCortex
-from core.kafka_producer import kafka_file_to_json_producer
+from core.process_messages import kafka_file_to_json_producer
 from core.kafka_consumer import spark_kafka_consumer
 import argparse
 
