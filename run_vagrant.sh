@@ -3,8 +3,7 @@
 # Python3 path
 export PYSPARK_PYTHON=/usr/bin/python3.6
 export LD_LIBRARY_PATH=/home/vagrant/hadoop/lib/native/
-# add current project root directory to pythonpath
-#export PYTHONPATH="${PYTHONPATH}:/cerebralcortex/code/CerebralCortex/"
+export PATH=/home/vagrant/hadoop/bin/:$PATH
 
 #Spark path
 export SPARK_HOME=/usr/local/spark/
