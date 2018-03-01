@@ -75,6 +75,8 @@ def run():
     spark_context.setLogLevel("WARN")
     consumer_group_id = "md2k-test"
 
+    spark_context.catalog.clearCache()
+
     CC = CerebralCortex(config_filepath)
 
     kafka_files_stream = spark_kafka_consumer(["hdfs_filequeue"], ssc, broker, consumer_group_id, CC)
