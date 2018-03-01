@@ -45,6 +45,13 @@ def run():
     parser.add_argument("-b", "--broker_list",
                         help="Kafka brokers ip:port. Use comma if there are more than one broker. (e.g., 127.0.0.1:9092)",
                         required=False)
+    parser.add_argument("-drt", "--data_replay_type",
+                        help="acceptable parameters are mydb or kfka",
+                        required=True)
+
+    parser.add_argument("-mbs", "--mydb_batch_size",
+                        help="Total number of messages to fetch from MySQL for processing.",
+                        required=True)
 
     args = vars(parser.parse_args())
 
@@ -54,15 +61,15 @@ def run():
         data_path = str(args["data_dir"]).strip()
         if (data_path[-1] != '/'):
             data_path += '/'
-    if not args["drt"]:
+    if not args["data_replay_type"]:
         data_replay_using = "kfka"
     else:
-        data_replay_using = args["drt"]
+        data_replay_using = args["data_replay_type"]
 
-    if not args["drt"]:
+    if not args["mydb_batch_size"]:
         mydb_batch_size = "5000"
     else:
-        mydb_batch_size = args["mbs"]
+        mydb_batch_size = args["mydb_batch_size"]
 
     if not args["config_filepath"]:
         raise ValueError("Configuration file path cannot be empty")
@@ -87,9 +94,9 @@ def run():
     CC = CerebralCortex(config_filepath)
 
     if data_replay_using=="mydb":
-        replay_batch = CC.SqlData.get_replay_batch(record_limit=mydb_batch_size)
-        #get records from mysql and process (skip kafka)
-        mysql_batch_to_db(spark_context, replay_batch, data_path, config_filepath)
+        for replay_batch in CC.SqlData.get_replay_batch(record_limit=mydb_batch_size):
+            #get records from mysql and process (skip kafka)
+            mysql_batch_to_db(spark_context, replay_batch, data_path, config_filepath)
     else:
         ssc = StreamingContext(spark_context, batch_duration)
         kafka_files_stream = spark_kafka_consumer(["hdfs_filequeue"], ssc, broker, consumer_group_id, CC)

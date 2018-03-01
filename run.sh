@@ -20,7 +20,7 @@ export PATH=$SPARK_HOME/bin:$PATH
 
 #use mydb to process messages without publishing them on kafka
 DATA_REPLAY_TYPE="mydb" #acceptable params are mydb or kfka
-MYDB_BATCH_SIZE="5000" #number of messages
+MYDB_BATCH_SIZE="30" #number of messages
 
 # path of cc configuration path
 CC_CONFIG_FILEPATH="/home/ali/IdeaProjects/CerebralCortex-2.0/cerebralcortex/core/resources/cc_configuration.yml"
