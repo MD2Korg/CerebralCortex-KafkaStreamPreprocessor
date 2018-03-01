@@ -27,9 +27,10 @@
 from cerebralcortex.core.util.spark_helper import get_or_create_sc
 from pyspark.streaming import StreamingContext
 from cerebralcortex.cerebralcortex import CerebralCortex
-from core.process_messages import kafka_file_to_json_producer
+from core.process_messages import kafka_file_to_json_producer, mysql_batch_to_db
 from core.kafka_consumer import spark_kafka_consumer
 import argparse
+import json
 
 
 def run():
@@ -53,6 +54,10 @@ def run():
         data_path = str(args["data_dir"]).strip()
         if (data_path[-1] != '/'):
             data_path += '/'
+    if not args["drt"]:
+        data_replay_using = "kfka"
+    else:
+        data_replay_using = args["drt"]
 
     if not args["config_filepath"]:
         raise ValueError("Configuration file path cannot be empty")
@@ -71,18 +76,23 @@ def run():
 
     # Kafka Consumer Configs
     spark_context = get_or_create_sc(type="sparkContext")
-    ssc = StreamingContext(spark_context, batch_duration)
     spark_context.setLogLevel("WARN")
     consumer_group_id = "md2k-test"
 
     CC = CerebralCortex(config_filepath)
 
-    kafka_files_stream = spark_kafka_consumer(["hdfs_filequeue"], ssc, broker, consumer_group_id, CC)
-    if kafka_files_stream is not None:
-        kafka_files_stream.foreachRDD(lambda rdd: kafka_file_to_json_producer(rdd, data_path, config_filepath, CC))
+    if data_replay_using=="mydb":
+        replay_batch = CC.SqlData.get_replay_batch(record_limit=1000)
+        #get records from mysql and process (skip kafka)
+        mysql_batch_to_db(spark_context, replay_batch, data_path, config_filepath)
+    else:
+        ssc = StreamingContext(spark_context, batch_duration)
+        kafka_files_stream = spark_kafka_consumer(["hdfs_filequeue"], ssc, broker, consumer_group_id, CC)
+        if kafka_files_stream is not None:
+            kafka_files_stream.foreachRDD(lambda rdd: kafka_file_to_json_producer(rdd, data_path, config_filepath, CC))
 
-    ssc.start()
-    ssc.awaitTermination()
+        ssc.start()
+        ssc.awaitTermination()
 
 
 if __name__ == "__main__":

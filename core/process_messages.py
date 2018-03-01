@@ -49,6 +49,10 @@ def save_data(msg, data_path, config_filepath):
     file_to_db = FileToDB(CC)
     file_to_db.file_processor(msg, data_path, CC.config['data_ingestion']['influxdb_in'], CC.config['data_ingestion']['nosql_in'])
 
+def mysql_batch_to_db(spark_context, replay_batch, data_path, config_filepath):
+    message = spark_context.parallelize(replay_batch)
+    message.foreach(lambda msg: save_data(msg, data_path, config_filepath))
+    print("File Iteration count:", len(replay_batch))
 
 def kafka_file_to_json_producer(message: KafkaDStream, data_path, config_filepath, CC):
     """
@@ -57,10 +61,7 @@ def kafka_file_to_json_producer(message: KafkaDStream, data_path, config_filepat
     """
 
     records = message.map(lambda r: json.loads(r[1]))
-
     #valid_records = records.filter(lambda rdd: verify_fields(rdd, data_path))
     results = records.map(lambda msg: save_data(msg, data_path, config_filepath))
-
     print("File Iteration count:", results.count())
-
     store_offset_ranges(message, CC)

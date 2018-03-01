@@ -8,6 +8,8 @@ export PATH=/home/vagrant/hadoop/bin/:$PATH
 #Spark path
 export SPARK_HOME=/usr/local/spark/
 
+#use mydb to process messages without publishing them on kafka
+DATA_REPLAY_TYPE="mydb" #acceptable params are mydb or kfka
 
 #set spark home
 export PATH=$SPARK_HOME/bin:$PATH
@@ -30,5 +32,5 @@ SPARK_MASTER="local[2]"
 
 spark-submit --master $SPARK_MASTER --packages \
 org.apache.spark:spark-streaming-kafka-0-8_2.11:2.2.0 \
-main.py -c $CC_CONFIG_FILEPATH -d $DATA_DIR -b$KAFKA_BROKER -bd $BATCH_DURATION
+main.py -c $CC_CONFIG_FILEPATH -d $DATA_DIR -b$KAFKA_BROKER -bd $BATCH_DURATION -drt $DATA_REPLAY_TYPE
 
