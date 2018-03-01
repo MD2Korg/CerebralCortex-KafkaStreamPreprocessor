@@ -59,6 +59,11 @@ def run():
     else:
         data_replay_using = args["drt"]
 
+    if not args["drt"]:
+        mydb_batch_size = "5000"
+    else:
+        mydb_batch_size = args["mbs"]
+
     if not args["config_filepath"]:
         raise ValueError("Configuration file path cannot be empty")
     else:
@@ -82,7 +87,7 @@ def run():
     CC = CerebralCortex(config_filepath)
 
     if data_replay_using=="mydb":
-        replay_batch = CC.SqlData.get_replay_batch(record_limit=1000)
+        replay_batch = CC.SqlData.get_replay_batch(record_limit=mydb_batch_size)
         #get records from mysql and process (skip kafka)
         mysql_batch_to_db(spark_context, replay_batch, data_path, config_filepath)
     else:

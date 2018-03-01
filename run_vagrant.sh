@@ -10,6 +10,7 @@ export SPARK_HOME=/usr/local/spark/
 
 #use mydb to process messages without publishing them on kafka
 DATA_REPLAY_TYPE="mydb" #acceptable params are mydb or kfka
+MYDB_BATCH_SIZE="5000" #number of messages
 
 #set spark home
 export PATH=$SPARK_HOME/bin:$PATH
@@ -32,5 +33,5 @@ SPARK_MASTER="local[2]"
 
 spark-submit --master $SPARK_MASTER --packages \
 org.apache.spark:spark-streaming-kafka-0-8_2.11:2.2.0 \
-main.py -c $CC_CONFIG_FILEPATH -d $DATA_DIR -b$KAFKA_BROKER -bd $BATCH_DURATION -drt $DATA_REPLAY_TYPE
+main.py -c $CC_CONFIG_FILEPATH -d $DATA_DIR -b$KAFKA_BROKER -bd $BATCH_DURATION -drt $DATA_REPLAY_TYPE -mbs $MYDB_BATCH_SIZE
 

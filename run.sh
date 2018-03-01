@@ -20,6 +20,7 @@ export PATH=$SPARK_HOME/bin:$PATH
 
 #use mydb to process messages without publishing them on kafka
 DATA_REPLAY_TYPE="mydb" #acceptable params are mydb or kfka
+MYDB_BATCH_SIZE="5000" #number of messages
 
 # path of cc configuration path
 CC_CONFIG_FILEPATH="/home/ali/IdeaProjects/CerebralCortex-2.0/cerebralcortex/core/resources/cc_configuration.yml"
@@ -33,4 +34,4 @@ KAFKA_BROKER="127.0.0.1:9092"
 # spark master
 SPARK_MASTER="local[*]"
 
-spark-submit --conf spark.streaming.kafka.maxRatePerPartition=10 --driver-memory 1g --executor-memory 1g --packages org.apache.spark:spark-streaming-kafka-0-8_2.11:2.2.0,com.datastax.spark:spark-cassandra-connector_2.11:2.0.1 main.py -c $CC_CONFIG_FILEPATH -d $DATA_DIR -b $KAFKA_BROKER -bd $BATCH_DURATION -drt $DATA_REPLAY_TYPE
+spark-submit --conf spark.streaming.kafka.maxRatePerPartition=10 --driver-memory 1g --executor-memory 1g --packages org.apache.spark:spark-streaming-kafka-0-8_2.11:2.2.0,com.datastax.spark:spark-cassandra-connector_2.11:2.0.1 main.py -c $CC_CONFIG_FILEPATH -d $DATA_DIR -b $KAFKA_BROKER -bd $BATCH_DURATION -drt $DATA_REPLAY_TYPE -mbs $MYDB_BATCH_SIZE
