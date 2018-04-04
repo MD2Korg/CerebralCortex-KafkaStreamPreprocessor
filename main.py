@@ -99,7 +99,7 @@ def run():
             mysql_batch_to_db(spark_context, replay_batch, data_path, config_filepath)
     else:
         ssc = StreamingContext(spark_context, batch_duration)
-        kafka_files_stream = spark_kafka_consumer(["hdfs_filequeue"], ssc, broker, consumer_group_id, CC)
+        kafka_files_stream = spark_kafka_consumer(["filequeue"], ssc, broker, consumer_group_id, CC)
         if kafka_files_stream is not None:
             kafka_files_stream.foreachRDD(lambda rdd: kafka_file_to_json_producer(rdd, data_path, config_filepath, CC))
 
