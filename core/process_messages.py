@@ -38,8 +38,7 @@ def verify_fields(msg: dict, data_path: str) -> bool:
     :param data_path:
     :return:
     """
-    if "metadata" in msg and "filename" in msg:
-        if os.path.isfile(data_path + msg["filename"]):
+    if "metadata" in msg and "filename" in msg and "day" in msg:
             return True
     return True
 
@@ -61,7 +60,7 @@ def kafka_file_to_json_producer(message: KafkaDStream, data_path, config_filepat
     """
 
     records = message.map(lambda r: json.loads(r[1]))
-    #valid_records = records.filter(lambda rdd: verify_fields(rdd, data_path))
-    results = records.map(lambda msg: save_data(msg, data_path, config_filepath))
+    valid_records = records.filter(lambda rdd: verify_fields(rdd, data_path))
+    results = valid_records.map(lambda msg: save_data(msg, data_path, config_filepath))
     print("File Iteration count:", results.count())
     store_offset_ranges(message, CC)
