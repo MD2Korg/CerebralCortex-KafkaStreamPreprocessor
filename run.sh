@@ -7,7 +7,7 @@ export PYSPARK_PYTHON=/usr/bin/python3
 export PYTHONPATH="${PYTHONPATH}:/home/ali/IdeaProjects/CerebralCortex-2.0/"
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/hadoop/lib/native/libhdfs.so
-#sudo ln -s /opt/hadoop/lib/native/libhdfs.so /usr/lib/libhdfs.so
+#sudo ln -s /usr/local/hadoop/lib/native/libhdfs.so /usr/lib/libhdfs.so
 
 #Spark path
 export SPARK_HOME=/home/ali/spark/spark-2.2.1-bin-hadoop2.7/
@@ -18,8 +18,7 @@ export PYSPARK_SUBMIT_ARGS="--packages org.apache.spark:spark-streaming-kafka-0-
 #set spark home
 export PATH=$SPARK_HOME/bin:$PATH
 
-#use mydb to process messages without publishing them on kafka
-#DATA_REPLAY_TYPE="kfka" #acceptable params are mydb or kfka
+#set batch size if mydb data-play option is selected
 MYDB_BATCH_SIZE="300" #number of messages
 
 # path of cc configuration path
@@ -28,8 +27,7 @@ CC_CONFIG_FILEPATH="/home/ali/IdeaProjects/CerebralCortex-2.0/cerebralcortex/cor
 DATA_DIR="/home/ali/IdeaProjects/CerebralCortex-DockerCompose/data/"
 # how often CC-kafka shall check for new messages (in seconds)
 BATCH_DURATION="5"
-# kafka broker ip with port, more than one brokers shale be separated by command
-#KAFKA_BROKER="10.0.0.143:9092"
+
 
 # spark master
 SPARK_MASTER="local[*]"

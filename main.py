@@ -42,12 +42,7 @@ def run():
 
     parser.add_argument("-bd", "--batch_duration",
                         help="How frequent kafka messages shall be checked (duration in seconds)", required=False)
-    # parser.add_argument("-b", "--broker_list",
-    #                     help="Kafka brokers ip:port. Use comma if there are more than one broker. (e.g., 127.0.0.1:9092)",
-    #                     required=False)
-    # parser.add_argument("-drt", "--data_replay_type",
-    #                     help="acceptable parameters are mydb or kfka",
-    #                     required=True)
+
 
     parser.add_argument("-mbs", "--mydb_batch_size",
                         help="Total number of messages to fetch from MySQL for processing.",
@@ -61,10 +56,6 @@ def run():
         data_path = str(args["data_dir"]).strip()
         if (data_path[-1] != '/'):
             data_path += '/'
-    # if not args["data_replay_type"]:
-    #     data_replay_using = "kfka"
-    # else:
-    #     data_replay_using = args["data_replay_type"]
 
     if not args["mydb_batch_size"]:
         mydb_batch_size = "5000"
@@ -80,11 +71,6 @@ def run():
         batch_duration = 5  # seconds
     else:
         batch_duration = int(args["batch_duration"])
-
-    # if not args["broker_list"]:
-    #     broker = "localhost:9092"  # multiple brokers can be passed as comma separated values
-    # else:
-    #     broker = str(args["broker_list"]).strip()
 
     # Kafka Consumer Configs
     spark_context = get_or_create_sc(type="sparkContext")
