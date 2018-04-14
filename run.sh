@@ -21,6 +21,9 @@ export PATH=$SPARK_HOME/bin:$PATH
 #set batch size if mydb data-play option is selected
 MYDB_BATCH_SIZE="300" #number of messages
 
+# Run data replay for all participants or selected participants list define in main.py (accepted params are "all" or "selected")
+PARTICIPANTS="select"
+
 # path of cc configuration path
 CC_CONFIG_FILEPATH="/home/ali/IdeaProjects/CerebralCortex-2.0/cerebralcortex/core/resources/cc_configuration.yml"
 # data directory where all gz and json files are stored
@@ -32,4 +35,4 @@ BATCH_DURATION="5"
 # spark master
 SPARK_MASTER="local[*]"
 
-spark-submit --conf spark.streaming.kafka.maxRatePerPartition=10 --driver-memory 1g --executor-memory 1g --packages org.apache.spark:spark-streaming-kafka-0-8_2.11:2.2.0,com.datastax.spark:spark-cassandra-connector_2.11:2.0.1 main.py -c $CC_CONFIG_FILEPATH -d $DATA_DIR -bd $BATCH_DURATION -mbs $MYDB_BATCH_SIZE
+spark-submit --conf spark.streaming.kafka.maxRatePerPartition=10 --driver-memory 1g --executor-memory 1g --packages org.apache.spark:spark-streaming-kafka-0-8_2.11:2.2.0 main.py -c $CC_CONFIG_FILEPATH -d $DATA_DIR -bd $BATCH_DURATION -mbs $MYDB_BATCH_SIZE -participants $PARTICIPANTS
