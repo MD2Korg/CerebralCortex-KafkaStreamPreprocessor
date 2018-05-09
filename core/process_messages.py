@@ -50,7 +50,7 @@ def save_data(msg, data_path, config_filepath):
 
 def mysql_batch_to_db(spark_context, replay_batch, data_path, config_filepath):
     if len(replay_batch)>0:
-        message = spark_context.parallelize(replay_batch)
+        message = spark_context.parallelize(replay_batch, len(replay_batch))
         message.foreach(lambda msg: save_data(msg, data_path, config_filepath))
         print("File Iteration count:", len(replay_batch))
 
