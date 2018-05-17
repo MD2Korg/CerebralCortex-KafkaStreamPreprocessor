@@ -106,7 +106,6 @@ def run():
             if participants=="all":
                 new_replay_batch = replay_batch
             else:
-
                 for rb in replay_batch:
                     if rb["owner_id"] in selected_participants:
                         new_replay_batch.append(rb)
