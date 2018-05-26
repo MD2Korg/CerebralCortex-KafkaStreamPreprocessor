@@ -62,8 +62,8 @@ def run():
     ]
     parser = argparse.ArgumentParser(description='CerebralCortex Kafka Message Handler.')
     parser.add_argument("-c", "--config_filepath", help="Configuration file path", required=True)
-    parser.add_argument("-d", "--data_dir", help="Directory path where all the gz files are stored by API-Server",
-                        required=True)
+    # parser.add_argument("-d", "--data_dir", help="Directory path where all the gz files are stored by API-Server",
+    #                     required=True)
 
     parser.add_argument("-bd", "--batch_duration",
                         help="How frequent kafka messages shall be checked (duration in seconds)", default="5", required=False)
@@ -85,9 +85,9 @@ def run():
     mydb_batch_size = args["mydb_batch_size"]
     config_filepath = str(args["config_filepath"]).strip()
     batch_duration = int(args["batch_duration"])
-    data_path = str(args["data_dir"]).strip()
-    if (data_path[-1] != '/'):
-        data_path += '/'
+    # data_path = str(args["data_dir"]).strip()
+    # if (data_path[-1] != '/'):
+    #     data_path += '/'
 
 
     # Kafka Consumer Configs
@@ -99,6 +99,7 @@ def run():
     broker = str(CC.config["kafkaserver"]["host"])+":"+str(CC.config["kafkaserver"]["port"])
     data_replay_using = str(CC.config["data_replay"]["replay_type"])
 
+    data_path = CC.config["data_replay"]["data_dir"]
     if data_replay_using=="mydb":
         for replay_batch in CC.SqlData.get_replay_batch(record_limit=mydb_batch_size):
             new_replay_batch = []

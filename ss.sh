@@ -10,8 +10,6 @@ MYDB_BATCH_SIZE="5000" #number of messages
 
 # path of cc configuration path
 CC_CONFIG_FILEPATH="/cerebralcortex/code/config/cc_starwars_configuration.yml"
-# data directory where all gz and json files are stored
-DATA_DIR="/md2k/apiserver/data/"
 
 # how often CC-kafka shall check for new messages (in seconds)
 BATCH_DURATION="60"
@@ -23,8 +21,8 @@ PARTICIPANTS="select"
 SPARK_MASTER="spark://dagobah10dot.memphis.edu:7077"
 SPARK_UI_PORT=4089
 
-PY_FILES="/cerebralcortex/code/CerebralCortex/dist/MD2K_Cerebral_Cortex-2.2.2-py3.6.egg,dist/MD2K_Cerebral_Cortex_Kafka_File_Queue_Processor-2.2.0-py3.6.egg"
+PY_FILES="/cerebralcortex/code/ali/CerebralCortex/dist/MD2K_Cerebral_Cortex-2.2.2-py3.6.egg,dist/MD2K_Cerebral_Cortex_Kafka_File_Queue_Processor-2.2.0-py3.6.egg"
 
 python3.6 setup.py bdist_egg
 
-spark-submit --master $SPARK_MASTER --conf spark.ui.port=$SPARK_UI_PORT --total-executor-cores 8 --conf spark.streaming.kafka.maxRatePerPartition=10 --driver-memory 1g --executor-memory 1g --packages org.apache.spark:spark-streaming-kafka-0-8_2.11:2.2.0 --py-files $PY_FILES main.py -c $CC_CONFIG_FILEPATH -d $DATA_DIR -bd $BATCH_DURATION -mbs $MYDB_BATCH_SIZE -participants $PARTICIPANTS
+spark-submit --master $SPARK_MASTER --conf spark.ui.port=$SPARK_UI_PORT --total-executor-cores 36 --conf spark.streaming.kafka.maxRatePerPartition=10 --driver-memory 1g --executor-memory 1g --packages org.apache.spark:spark-streaming-kafka-0-8_2.11:2.2.0 --py-files $PY_FILES main.py -c $CC_CONFIG_FILEPATH -bd $BATCH_DURATION -mbs $MYDB_BATCH_SIZE -participants $PARTICIPANTS
