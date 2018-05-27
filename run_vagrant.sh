@@ -9,7 +9,7 @@ export PATH=/home/vagrant/hadoop/bin/:$PATH
 export SPARK_HOME=/usr/local/spark/
 
 #set batch size if mydb data-play option is selected
-MYDB_BATCH_SIZE="500" #number of messages
+MYDB_BATCH_SIZE="10" #number of messages
 
 #set spark home
 export PATH=$SPARK_HOME/bin:$PATH
