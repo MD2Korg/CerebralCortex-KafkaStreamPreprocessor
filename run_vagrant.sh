@@ -21,7 +21,7 @@ CC_CONFIG_FILEPATH="/home/vagrant/CerebralCortex-DockerCompose/cc_config_file/cc
 BATCH_DURATION="10"
 
 # spark master
-SPARK_MASTER="local[2]"
+SPARK_MASTER="local[1]"
 
 
 spark-submit --master $SPARK_MASTER --packages \
