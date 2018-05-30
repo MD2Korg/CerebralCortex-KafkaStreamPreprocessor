@@ -14,7 +14,7 @@ with open(path.join(here, 'README.md')) as f:
 setup(
     name="MD2K: Cerebral Cortex: Kafka File Queue Processor",
 
-    version='2.2.0',
+    version='2.2.3',
 
     description='',
     long_description=long_description,
