@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+#########################################################################################
+############################ Environment Configs ########################################
+#########################################################################################
+
 # Python3 path
 export PYSPARK_PYTHON=/usr/bin/python3
 
@@ -18,20 +22,43 @@ export PYSPARK_SUBMIT_ARGS="--packages org.apache.spark:spark-streaming-kafka-0-
 #set spark home
 export PATH=$SPARK_HOME/bin:$PATH
 
-#set batch size if mydb data-play option is selected
-MYDB_BATCH_SIZE="300" #number of messages
 
-# Run data replay for all participants or selected participants list define in main.py (accepted params are "all" or "selected")
-PARTICIPANTS="select"
+#########################################################################################
+############################ Ingestion Configs ##########################################
+#########################################################################################
 
-# path of cc configuration path
-CC_CONFIG_FILEPATH="/home/ali/IdeaProjects/CerebralCortex-2.0/cerebralcortex/core/resources/cc_configuration.yml"
+# Data will be ingested in NoSQL storage if set to true. Acceptable parameters are true or false.
+NOSQL_INGEST = "false"
 
+# Data will be ingested in InfluxDB if set to true. Acceptable parameters are true or false.
+INFLUXDB_INGEST = "true"
+
+# Data ingestion source type. Whether data information (file names) will be fetched from MySQL or kafka messaging queue. Acceptable parameters are mysql or kafka only.
+INGESTION_TYPE = "mysql"
+
+# Set batch size if mysql INGESTION_TYPE is selected
+# Number of MySQL row a batch shall process. One MySQL row contains all .gz files paths of one day worth of data of a stream.
+MYDB_BATCH_SIZE="300"
+
+# Set only when kafka INGESTION_TYPE is selected.
 # how often CC-kafka shall check for new messages (in seconds)
 BATCH_DURATION="5"
 
+#########################################################################################
+############################ YAML Config Paths and other configs ########################
+#########################################################################################
 
-# spark master
+# Provide a comma separated participants UUIDs. All participants' data will be processed if no UUIDs is provided.
+PARTICIPANTS=""
+
+# path of cc configuration path
+CC_CONFIG_FILEPATH="/home/ali/IdeaProjects/CerebralCortex-2.0/conf/cerebralcortex.yml"
+
+# path of ksp (kafka-stream-preprocessor) configuration path
+KSP_CONFIG_FILEPATH="/home/ali/IdeaProjects/CerebralCortex-2.0/conf/data_ingestion.yml"
+
+# spark master. This will work on local machine only. In case of cloud, provide spark master node URL:port.
 SPARK_MASTER="local[*]"
 
-spark-submit --conf spark.streaming.kafka.maxRatePerPartition=10 --driver-memory 1g --executor-memory 1g --packages org.apache.spark:spark-streaming-kafka-0-8_2.11:2.2.0 main.py -c $CC_CONFIG_FILEPATH -bd $BATCH_DURATION -mbs $MYDB_BATCH_SIZE -participants $PARTICIPANTS
+
+spark-submit --conf spark.streaming.kafka.maxRatePerPartition=10 --packages org.apache.spark:spark-streaming-kafka-0-8_2.11:2.2.0 main.py -c $CC_CONFIG_FILEPATH -ksp $KSP_CONFIG_FILEPATH -ii INFLUXDB_INGEST -ni NOSQL_INGEST -bd $BATCH_DURATION -mbs $MYDB_BATCH_SIZE -participants $PARTICIPANTS

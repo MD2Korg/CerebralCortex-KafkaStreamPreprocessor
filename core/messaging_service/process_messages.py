@@ -23,15 +23,32 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import json
-import os
-import gc
 from cerebralcortex.cerebralcortex import CerebralCortex
 from cerebralcortex.core.data_manager.raw.file_to_db import FileToDB
+from core.file_processor.data import ProcessData
 from pyspark.streaming.kafka import KafkaDStream
-from core.kafka_offset import store_offset_ranges
 
 
-def verify_fields(msg: dict, data_path: str) -> bool:
+def save_data(msg, data_path, config_filepath, ingestion_config, ingestion_type, nosql_in, influxdb_in):
+    CC = CerebralCortex(config_filepath)
+    process_data = ProcessData(CC, ingestion_config, ingestion_type)
+    process_data.ingest.file_processor(msg, data_path, influxdb_in, nosql_in)
+
+#########################################################################################
+######################### MySQL Based Data Ingestion ####################################
+#########################################################################################
+
+def mysql_batch_to_db(spark_context, replay_batch, data_path, config_filepath, ingestion_config, ingestion_type, nosql_in, influxdb_in):
+    if len(replay_batch)>0:
+        message = spark_context.parallelize(replay_batch)
+        message.foreach(lambda msg: save_data(msg, data_path, config_filepath, ingestion_config, ingestion_type, nosql_in, influxdb_in))
+        print("File Iteration count:", len(replay_batch))
+
+#########################################################################################
+######################### KAFKA Based Data Ingestion ####################################
+#########################################################################################
+
+def verify_fields(msg: dict) -> bool:
     """
     Verify whether msg contains file name and metadata
     :param msg:
@@ -39,29 +56,25 @@ def verify_fields(msg: dict, data_path: str) -> bool:
     :return:
     """
     if "metadata" in msg and "filename" in msg and "day" in msg:
-            return True
+        return True
     return True
 
-
-def save_data(msg, data_path, config_filepath):
-    CC = CerebralCortex(config_filepath)
-    file_to_db = FileToDB(CC)
-    file_to_db.file_processor(msg, data_path, CC.config['data_ingestion']['influxdb_in'], CC.config['data_ingestion']['nosql_in'])
-
-def mysql_batch_to_db(spark_context, replay_batch, data_path, config_filepath):
-    if len(replay_batch)>0:
-        message = spark_context.parallelize(replay_batch)
-        message.foreach(lambda msg: save_data(msg, data_path, config_filepath))
-        print("File Iteration count:", len(replay_batch))
-
-def kafka_file_to_json_producer(message: KafkaDStream, data_path, config_filepath, CC):
+def kafka_msg_to_db(message: KafkaDStream, data_path, config_filepath, CC):
     """
     Read convert gzip file data into json object and publish it on Kafka
     :param message:
     """
 
     records = message.map(lambda r: json.loads(r[1]))
-    valid_records = records.filter(lambda rdd: verify_fields(rdd, data_path))
+    valid_records = records.filter(lambda rdd: verify_fields(rdd))
     results = valid_records.map(lambda msg: save_data(msg, data_path, config_filepath))
     print("File Iteration count:", results.count())
     store_offset_ranges(message, CC)
+
+def store_offset_ranges(rdd, CC):
+    offsetRanges = rdd.offsetRanges()
+    for offsets in offsetRanges:
+        try:
+            CC.store_or_update_Kafka_offset(offsets.topic, offsets.partition, offsets.fromOffset, offsets.untilOffset)
+        except Exception as e:
+            print(e)

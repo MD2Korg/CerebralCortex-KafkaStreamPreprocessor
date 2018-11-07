@@ -14,8 +14,8 @@ CC_CONFIG_FILEPATH="/cerebralcortex/code/ali/cc_config/cc_configuration.yml"
 # how often CC-kafka shall check for new messages (in seconds)
 BATCH_DURATION="60"
 
-# Run data replay for all participants or selected participants list define in main.py (accepted params are "all" or "selected")
-PARTICIPANTS="all"
+# Provide a comma separated participants UUIDs. All participants' data will be processed if no UUIDs is provided.
+PARTICIPANTS=""
 
 # spark master
 SPARK_MASTER="spark://dagobah10dot.memphis.edu:7077"

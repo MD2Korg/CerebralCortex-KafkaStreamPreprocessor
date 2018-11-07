@@ -23,10 +23,10 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-def store_offset_ranges(rdd, CC):
-    offsetRanges = rdd.offsetRanges()
-    for offsets in offsetRanges:
-        try:
-            CC.store_or_update_Kafka_offset(offsets.topic, offsets.partition, offsets.fromOffset, offsets.untilOffset)
-        except Exception as e:
-            print(e)
+# def store_offset_ranges(rdd, CC):
+#     offsetRanges = rdd.offsetRanges()
+#     for offsets in offsetRanges:
+#         try:
+#             CC.store_or_update_Kafka_offset(offsets.topic, offsets.partition, offsets.fromOffset, offsets.untilOffset)
+#         except Exception as e:
+#             print(e)
